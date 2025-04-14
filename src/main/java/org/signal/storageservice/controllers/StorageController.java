@@ -103,7 +103,7 @@ public class StorageController {
 
   private static DistributionSummary distributionSummary(final String name, final String userAgent) {
     return DistributionSummary.builder(name)
-        .publishPercentiles(0.75, 0.95, 0.99, 0.999)
+        .publishPercentileHistogram(true)
         .distributionStatisticExpiry(Duration.ofMinutes(5))
         .tags(Tags.of(UserAgentTagUtil.getPlatformTag(userAgent)))
         .register(Metrics.globalRegistry);
