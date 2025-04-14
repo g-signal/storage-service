@@ -49,6 +49,7 @@ public class StorageController {
   private static final String INSERT_DISTRIBUTION_SUMMARY_NAME = name(StorageController.class, "inserts");
   private static final String DELETE_DISTRIBUTION_SUMMARY_NAME = name(StorageController.class, "deletes");
   private static final String READ_DISTRIBUTION_SUMMARY_NAME = name(StorageController.class, "reads");
+  private static final String WRITE_REQUEST_SIZE_DISTRIBUTION_SUMMARY_NAME = name(StorageController.class, "writeRequestBytes");
 
   public StorageController(StorageManager storageManager) {
     this.storageManager = storageManager;
@@ -84,6 +85,7 @@ public class StorageController {
 
     distributionSummary(INSERT_DISTRIBUTION_SUMMARY_NAME, userAgent).record(writeOperation.getInsertItemCount());
     distributionSummary(DELETE_DISTRIBUTION_SUMMARY_NAME, userAgent).record(writeOperation.getDeleteKeyCount());
+    distributionSummary(WRITE_REQUEST_SIZE_DISTRIBUTION_SUMMARY_NAME, userAgent).record(writeOperation.getSerializedSize());
 
     if (writeOperation.getInsertItemCount() * StorageItemsTable.MUTATIONS_PER_INSERT + writeOperation.getDeleteKeyCount() > StorageItemsTable.MAX_MUTATIONS) {
       return CompletableFuture.failedFuture(new WebApplicationException(Status.REQUEST_ENTITY_TOO_LARGE));
