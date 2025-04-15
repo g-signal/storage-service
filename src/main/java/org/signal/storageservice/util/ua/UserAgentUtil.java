@@ -5,43 +5,30 @@
 
 package org.signal.storageservice.util.ua;
 
-import java.util.EnumMap;
-import java.util.Map;
+import com.vdurmont.semver4j.Semver;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
 
 public class UserAgentUtil {
 
-    private static final Pattern STANDARD_UA_PATTERN = Pattern.compile("^Signal-(Android|Desktop|iOS)/([^ ]+)( (.+))?$", Pattern.CASE_INSENSITIVE);
+  private static final Pattern STANDARD_UA_PATTERN = Pattern.compile("^Signal-(Android|Desktop|iOS)/([^ ]+)( (.+))?$", Pattern.CASE_INSENSITIVE);
 
-    private static final Map<ClientPlatform, Pattern> LEGACY_PATTERNS_BY_PLATFORM = new EnumMap<>(ClientPlatform.class);
-
-    static {
-        LEGACY_PATTERNS_BY_PLATFORM.put(ClientPlatform.ANDROID, Pattern.compile("^Signal-Android ([^ ]+)( (.+))?$", Pattern.CASE_INSENSITIVE));
-        LEGACY_PATTERNS_BY_PLATFORM.put(ClientPlatform.DESKTOP, Pattern.compile("^Signal Desktop (.+)$", Pattern.CASE_INSENSITIVE));
-        LEGACY_PATTERNS_BY_PLATFORM.put(ClientPlatform.IOS, Pattern.compile("^Signal/([^ ]+)( (.+))?$", Pattern.CASE_INSENSITIVE));
+  public static UserAgent parseUserAgentString(final String userAgentString) throws UnrecognizedUserAgentException {
+    if (StringUtils.isBlank(userAgentString)) {
+      throw new UnrecognizedUserAgentException("User-Agent string is blank");
     }
 
-    public static ClientPlatform getPlatformFromUserAgentString(final String userAgentString) throws UnrecognizedUserAgentException {
-      if (userAgentString == null) {
-        throw new UnrecognizedUserAgentException();
+    try {
+      final Matcher matcher = STANDARD_UA_PATTERN.matcher(userAgentString);
+
+      if (matcher.matches()) {
+        return new UserAgent(ClientPlatform.valueOf(matcher.group(1).toUpperCase()), new Semver(matcher.group(2)), StringUtils.stripToNull(matcher.group(4)));
       }
-      final Matcher standardUaMatcher = STANDARD_UA_PATTERN.matcher(userAgentString);
-
-      if (standardUaMatcher.matches()) {
-        return ClientPlatform.valueOf(standardUaMatcher.group(1).toUpperCase());
-      } else {
-        for (final Map.Entry<ClientPlatform, Pattern> entry : LEGACY_PATTERNS_BY_PLATFORM.entrySet()) {
-          final ClientPlatform platform = entry.getKey();
-          final Pattern pattern = entry.getValue();
-          final Matcher legacyUaMatcher = pattern.matcher(userAgentString);
-
-          if (legacyUaMatcher.matches()) {
-            return platform;
-          }
-        }
-      }
-
-      throw new UnrecognizedUserAgentException();
+    } catch (final Exception e) {
+      throw new UnrecognizedUserAgentException(e);
     }
+
+    throw new UnrecognizedUserAgentException();
+  }
 }

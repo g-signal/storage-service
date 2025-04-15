@@ -23,7 +23,7 @@ public class UserAgentTagUtil {
     String platform;
 
     try {
-      platform = UserAgentUtil.getPlatformFromUserAgentString(userAgentString).name().toLowerCase();
+      platform = UserAgentUtil.parseUserAgentString(userAgentString).platform().name().toLowerCase();
     } catch (final UnrecognizedUserAgentException e) {
       platform = "unrecognized";
     }
