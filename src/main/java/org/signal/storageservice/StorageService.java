@@ -102,7 +102,7 @@ public class StorageService extends Application<StorageServiceConfiguration> {
             config.getBigTableConfiguration().getContactsTableId(),
             config.getBigTableConfiguration().getContactManifestsTableId()),
         config.getWarmUpConfiguration().count()));
-    environment.jersey().register(new StorageController(storageManager));
+    environment.jersey().register(new StorageController(storageManager, config.getRecognizedClientVersions()));
     environment.jersey().register(new GroupsController(Clock.systemUTC(), groupsManager, serverSecretParams, policySigner, postPolicyGenerator, config.getGroupConfiguration(), externalGroupCredentialGenerator));
     environment.jersey().register(new GroupsV1Controller(Clock.systemUTC(), groupsManager, serverSecretParams, policySigner, postPolicyGenerator, config.getGroupConfiguration(), externalGroupCredentialGenerator));
 
