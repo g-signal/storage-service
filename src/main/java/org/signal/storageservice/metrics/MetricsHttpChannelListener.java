@@ -125,9 +125,9 @@ public class MetricsHttpChannelListener implements HttpChannel.Listener, Contain
     final RequestInfo requestInfo = getRequestInfo(request);
 
     final Tags tags = Tags.of(
-        PATH_TAG, requestInfo.path(),
-        METHOD_TAG, requestInfo.method(),
-        STATUS_CODE_TAG, String.valueOf(requestInfo.statusCode()))
+            PATH_TAG, requestInfo.path(),
+            METHOD_TAG, requestInfo.method(),
+            STATUS_CODE_TAG, String.valueOf(requestInfo.statusCode()))
         .and(UserAgentTagUtil.getPlatformTag(requestInfo.userAgent()));
 
     meterRegistry.counter(REQUEST_COUNTER_NAME, tags).increment();
