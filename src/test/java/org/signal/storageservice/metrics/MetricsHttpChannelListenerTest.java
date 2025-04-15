@@ -32,6 +32,7 @@ class MetricsHttpChannelListenerTest {
 
   private MeterRegistry meterRegistry;
   private Counter requestCounter;
+  private Counter requestBytesCounter;
   private Counter responseBytesCounter;
   private MetricsHttpChannelListener listener;
 
@@ -39,11 +40,16 @@ class MetricsHttpChannelListenerTest {
   void setup() {
     meterRegistry = mock(MeterRegistry.class);
     requestCounter = mock(Counter.class);
+    requestBytesCounter = mock(Counter.class);
     responseBytesCounter = mock(Counter.class);
 
     //noinspection unchecked
     when(meterRegistry.counter(eq(MetricsHttpChannelListener.REQUEST_COUNTER_NAME), any(Iterable.class)))
         .thenReturn(requestCounter);
+
+    //noinspection unchecked
+    when(meterRegistry.counter(eq(MetricsHttpChannelListener.REQUEST_BYTES_COUNTER_NAME), any(Iterable.class)))
+        .thenReturn(requestBytesCounter);
 
     //noinspection unchecked
     when(meterRegistry.counter(eq(MetricsHttpChannelListener.RESPONSE_BYTES_COUNTER_NAME), any(Iterable.class)))
@@ -58,6 +64,7 @@ class MetricsHttpChannelListenerTest {
     final String path = "/test";
     final String method = "GET";
     final int statusCode = 200;
+    final long requestContentLength = 5;
     final long responseContentLength = 7;
 
     final HttpURI httpUri = mock(HttpURI.class);
@@ -67,6 +74,7 @@ class MetricsHttpChannelListenerTest {
     when(request.getMethod()).thenReturn(method);
     when(request.getHeader(HttpHeaders.USER_AGENT)).thenReturn("Signal-Android/4.53.7 (Android 8.1)");
     when(request.getHttpURI()).thenReturn(httpUri);
+    when(request.getContentRead()).thenReturn(requestContentLength);
 
     final Response response = mock(Response.class);
     when(response.getStatus()).thenReturn(statusCode);
@@ -81,6 +89,7 @@ class MetricsHttpChannelListenerTest {
     listener.onComplete(request);
 
     verify(requestCounter).increment();
+    verify(requestBytesCounter).increment(requestContentLength);
     verify(responseBytesCounter).increment(responseContentLength);
 
     verify(meterRegistry).counter(eq(MetricsHttpChannelListener.REQUEST_COUNTER_NAME), tagCaptor.capture());

@@ -50,6 +50,10 @@ public class MetricsHttpChannelListener implements HttpChannel.Listener, Contain
       "org.signal.storageservice.metrics.MetricsRequestEventListener.request";
 
   @VisibleForTesting
+  static final String REQUEST_BYTES_COUNTER_NAME =
+      MetricsUtil.name(MetricsHttpChannelListener.class, "requestBytes");
+
+  @VisibleForTesting
   static final String RESPONSE_BYTES_COUNTER_NAME =
       MetricsUtil.name(MetricsHttpChannelListener.class, "responseBytes");
 
@@ -127,6 +131,7 @@ public class MetricsHttpChannelListener implements HttpChannel.Listener, Contain
         .and(UserAgentTagUtil.getPlatformTag(requestInfo.userAgent()));
 
     meterRegistry.counter(REQUEST_COUNTER_NAME, tags).increment();
+    meterRegistry.counter(REQUEST_BYTES_COUNTER_NAME, tags).increment(request.getContentRead());
     meterRegistry.counter(RESPONSE_BYTES_COUNTER_NAME, tags).increment(request.getResponse().getContentCount());
   }
 
