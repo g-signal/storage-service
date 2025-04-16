@@ -9,17 +9,11 @@ import static com.codahale.metrics.MetricRegistry.name;
 
 import com.codahale.metrics.annotation.Timed;
 import com.google.common.annotations.VisibleForTesting;
-import com.vdurmont.semver4j.Semver;
 import io.dropwizard.auth.Auth;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.Metrics;
-import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DELETE;
@@ -42,13 +36,11 @@ import org.signal.storageservice.storage.protos.contacts.ReadOperation;
 import org.signal.storageservice.storage.protos.contacts.StorageItems;
 import org.signal.storageservice.storage.protos.contacts.StorageManifest;
 import org.signal.storageservice.storage.protos.contacts.WriteOperation;
-import org.signal.storageservice.util.ua.ClientPlatform;
 
 @Path("/v1/storage")
 public class StorageController {
 
   private final StorageManager storageManager;
-  private final Map<ClientPlatform, Set<Semver>> recognizedClientVersionsByPlatform;
 
   @VisibleForTesting
   static final int MAX_READ_KEYS = 5120;
@@ -61,11 +53,8 @@ public class StorageController {
 
   private static final String CLEAR_ALL_REQUEST_COUNTER_NAME = name(StorageController.class, "writeRequestClearAll");
 
-  public StorageController(StorageManager storageManager,
-      final Map<ClientPlatform, Set<Semver>> recognizedClientVersionsByPlatform) {
-
+  public StorageController(StorageManager storageManager) {
     this.storageManager = storageManager;
-    this.recognizedClientVersionsByPlatform = recognizedClientVersionsByPlatform;
   }
 
   @Timed
@@ -120,16 +109,11 @@ public class StorageController {
                  });
   }
 
-  private DistributionSummary distributionSummary(final String name, final String userAgent) {
-
-    final List<Tag> tags = new ArrayList<>();
-    tags.add(UserAgentTagUtil.getPlatformTag(userAgent));
-    UserAgentTagUtil.getClientVersionTag(userAgent, recognizedClientVersionsByPlatform).ifPresent(tags::add);
-
+  private static DistributionSummary distributionSummary(final String name, final String userAgent) {
     return DistributionSummary.builder(name)
         .publishPercentiles(0.75, 0.95, 0.99, 0.999)
         .distributionStatisticExpiry(Duration.ofMinutes(5))
-        .tags(tags)
+        .tags(Tags.of(UserAgentTagUtil.getPlatformTag(userAgent)))
         .register(Metrics.globalRegistry);
   }
 

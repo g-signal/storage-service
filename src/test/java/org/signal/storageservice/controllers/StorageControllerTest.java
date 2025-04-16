@@ -21,16 +21,15 @@ import com.google.protobuf.ByteString;
 import io.dropwizard.auth.AuthValueFactoryProvider;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.dropwizard.testing.junit5.ResourceExtension;
-import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.glassfish.jersey.client.ClientProperties;
 import org.junit.jupiter.api.Test;
@@ -61,7 +60,7 @@ class StorageControllerTest {
                                                               .addProvider(new ProtocolBufferMessageBodyProvider())
                                                               .addProvider(new InvalidProtocolBufferExceptionMapper())
                                                               .setMapper(SystemMapper.getMapper())
-                                                              .addResource(new StorageController(storageManager, Collections.emptyMap()))
+                                                              .addResource(new StorageController(storageManager))
                                                               .setClientConfigurator(clientConfig -> clientConfig.property(ClientProperties.SUPPRESS_HTTP_COMPLIANCE_VALIDATION, true))
                                                               .build();
 
