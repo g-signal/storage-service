@@ -21,15 +21,15 @@ import com.google.protobuf.ByteString;
 import io.dropwizard.auth.AuthValueFactoryProvider;
 import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.dropwizard.testing.junit5.ResourceExtension;
+import jakarta.ws.rs.client.Entity;
+import jakarta.ws.rs.core.Response;
+import jakarta.ws.rs.core.Response.Status;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
-import jakarta.ws.rs.client.Entity;
-import jakarta.ws.rs.core.Response;
-import jakarta.ws.rs.core.Response.Status;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.glassfish.jersey.client.ClientProperties;
 import org.junit.jupiter.api.Test;
@@ -357,8 +357,8 @@ class StorageControllerTest {
         .setValue(ByteString.copyFromUtf8("A manifest"))
         .build();
 
-    final int insertCount = 1 + StorageItemsTable.MAX_MUTATIONS / 2 / StorageItemsTable.MUTATIONS_PER_INSERT;
-    final int deleteCount = 1 + StorageItemsTable.MAX_MUTATIONS / 2;
+    final int insertCount = StorageController.MAX_BULK_MUTATION_PAGES * (1 + (StorageItemsTable.MAX_MUTATIONS / 2 / StorageItemsTable.MUTATIONS_PER_INSERT));
+    final int deleteCount = StorageController.MAX_BULK_MUTATION_PAGES * (1 + StorageItemsTable.MAX_MUTATIONS / 2);
 
    final WriteOperation.Builder builder = WriteOperation.newBuilder()
         .setManifest(manifest);

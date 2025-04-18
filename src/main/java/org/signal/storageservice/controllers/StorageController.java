@@ -46,8 +46,12 @@ public class StorageController {
   static final int MAX_READ_KEYS = 5120;
   // https://cloud.google.com/bigtable/quotas#limits-operations
 
+  @VisibleForTesting
+  static final int MAX_BULK_MUTATION_PAGES = 10;
+
   private static final String INSERT_DISTRIBUTION_SUMMARY_NAME = name(StorageController.class, "inserts");
   private static final String DELETE_DISTRIBUTION_SUMMARY_NAME = name(StorageController.class, "deletes");
+  private static final String MUTATION_DISTRIBUTION_SUMMARY_NAME = name(StorageController.class, "mutations");
   private static final String READ_DISTRIBUTION_SUMMARY_NAME = name(StorageController.class, "reads");
   private static final String WRITE_REQUEST_SIZE_DISTRIBUTION_SUMMARY_NAME = name(StorageController.class, "writeRequestBytes");
 
@@ -93,7 +97,12 @@ public class StorageController {
       Metrics.counter(CLEAR_ALL_REQUEST_COUNTER_NAME, Tags.of(UserAgentTagUtil.getPlatformTag(userAgent))).increment();
     }
 
-    if (writeOperation.getInsertItemCount() * StorageItemsTable.MUTATIONS_PER_INSERT + writeOperation.getDeleteKeyCount() > StorageItemsTable.MAX_MUTATIONS) {
+    final int mutations =
+        writeOperation.getInsertItemCount() * StorageItemsTable.MUTATIONS_PER_INSERT + writeOperation.getDeleteKeyCount();
+
+    distributionSummary(MUTATION_DISTRIBUTION_SUMMARY_NAME, userAgent).record(mutations);
+
+    if (mutations > StorageItemsTable.MAX_MUTATIONS * MAX_BULK_MUTATION_PAGES) {
       return CompletableFuture.failedFuture(new WebApplicationException(Status.REQUEST_ENTITY_TOO_LARGE));
     }
 

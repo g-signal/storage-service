@@ -18,6 +18,7 @@ import com.google.cloud.bigtable.data.v2.models.Mutation;
 import com.google.cloud.bigtable.data.v2.models.Query;
 import com.google.cloud.bigtable.data.v2.models.Row;
 import com.google.protobuf.ByteString;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -47,22 +48,45 @@ public class StorageItemsTable extends Table {
     super(client, tableId);
   }
 
-  public CompletableFuture<Void> set(User user, List<StorageItem> inserts, List<ByteString> deletes) {
-    BulkMutation bulkMutation = BulkMutation.create(tableId);
+  public CompletableFuture<Void> set(final User user, final List<StorageItem> inserts, final List<ByteString> deletes) {
+    final List<BulkMutation> bulkMutations = new ArrayList<>();
+    bulkMutations.add(BulkMutation.create(tableId));
 
-    for (StorageItem insert : inserts) {
-      bulkMutation.add(getRowKeyFor(user, insert.getKey()),
+    int mutations = 0;
+
+    for (final StorageItem insert : inserts) {
+      if (mutations + 2 > MAX_MUTATIONS) {
+        bulkMutations.add(BulkMutation.create(tableId));
+        mutations = 0;
+      }
+
+      bulkMutations.getLast().add(getRowKeyFor(user, insert.getKey()),
           Mutation.create()
               // each setCell() counts as mutation. If the below code changes, update MUTATIONS_PER_INSERT
               .setCell(FAMILY, ByteString.copyFromUtf8(COLUMN_DATA), 0, insert.getValue())
               .setCell(FAMILY, ByteString.copyFromUtf8(COLUMN_KEY), 0, insert.getKey()));
+
+      mutations += 2;
     }
 
     for (ByteString delete : deletes) {
-      bulkMutation.add(getRowKeyFor(user, delete), Mutation.create().deleteRow());
+      if (mutations == MAX_MUTATIONS) {
+        bulkMutations.add(BulkMutation.create(tableId));
+        mutations = 0;
+      }
+
+      bulkMutations.getLast().add(getRowKeyFor(user, delete), Mutation.create().deleteRow());
+
+      mutations += 1;
     }
 
-    return toFuture(client.bulkMutateRowsAsync(bulkMutation), setTimer);
+    CompletableFuture<Void> future = CompletableFuture.completedFuture(null);
+
+    for (final BulkMutation bulkMutation : bulkMutations) {
+      future = future.thenCompose(ignored -> toFuture(client.bulkMutateRowsAsync(bulkMutation), setTimer));
+    }
+
+    return future;
   }
 
   public CompletableFuture<Void> clear(User user) {
