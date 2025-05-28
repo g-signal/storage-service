@@ -5,17 +5,16 @@
 
 package org.signal.storageservice.auth;
 
-import com.google.protobuf.ByteString;
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import java.util.Random;
+import java.util.stream.Stream;
+
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.security.SecureRandom;
-import java.util.Random;
-import java.util.stream.Stream;
-
-import static org.junit.jupiter.api.Assertions.*;
+import com.google.protobuf.ByteString;
 
 class GroupUserTest {
 
@@ -42,9 +41,9 @@ class GroupUserTest {
         Arguments.of(memberUuid, null, groupPublicKey, memberUuid, groupPublicKey, true),
         Arguments.of(generateRandomByteString(), memberUuid, groupPublicKey, memberUuid, groupPublicKey, true),
         Arguments.of(generateRandomByteString(), null, groupPublicKey, memberUuid, groupPublicKey, false),
-        Arguments.of(generateRandomByteString(), generateRandomByteString(), groupPublicKey, memberUuid, groupPublicKey, false),
-        Arguments.of(memberUuid, null, generateRandomByteString(), memberUuid, groupPublicKey, false)
-    );
+        Arguments.of(generateRandomByteString(), generateRandomByteString(), groupPublicKey, memberUuid, groupPublicKey,
+            false),
+        Arguments.of(memberUuid, null, generateRandomByteString(), memberUuid, groupPublicKey, false));
   }
 
   private static ByteString generateRandomByteString() {
