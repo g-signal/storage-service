@@ -105,9 +105,10 @@ public class GroupsV1Controller extends GroupsController {
   @Consumes(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
   public CompletableFuture<Response> modifyGroup(
       @Auth GroupUser user,
+      @HeaderParam(jakarta.ws.rs.core.HttpHeaders.USER_AGENT) String userAgent,
       @QueryParam("inviteLinkPassword") String inviteLinkPasswordString,
       @NoUnknownFields GroupChange.Actions submittedActions) {
-    return super.modifyGroup(user, inviteLinkPasswordString, submittedActions)
+    return super.modifyGroup(user, userAgent, inviteLinkPasswordString, submittedActions)
         .thenApply(response -> {
               if (response.getEntity() instanceof final GroupChangeResponse gcr) {
                 return Response.fromResponse(response).entity(gcr.getGroupChange()).build();

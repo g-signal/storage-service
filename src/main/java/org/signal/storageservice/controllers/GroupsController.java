@@ -14,6 +14,7 @@ import com.google.protobuf.InvalidProtocolBufferException;
 import io.dropwizard.auth.Auth;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import jakarta.ws.rs.BadRequestException;
@@ -46,6 +48,7 @@ import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
+import org.glassfish.jersey.internal.util.ExceptionUtils;
 import org.signal.libsignal.zkgroup.InvalidInputException;
 import org.signal.libsignal.zkgroup.NotarySignature;
 import org.signal.libsignal.zkgroup.ServerSecretParams;
@@ -93,6 +96,7 @@ public class GroupsController {
   private static final int JOIN_BY_PNI_EPOCH = 5;
 
   private static final String LOG_SIZE_BYTES_DISTRIBUTION_SUMMARY_NAME = name(GroupsController.class, "logSizeBytes");
+  private static final String GROUP_PATCH_BAD_REQUEST_COUNTER_NAME = name(GroupsController.class, "patchBadRequest");
 
   private final Clock clock;
   private final GroupsManager groupsManager;
@@ -475,6 +479,7 @@ public class GroupsController {
   @Consumes(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
   public CompletableFuture<Response> modifyGroup(
       @Auth GroupUser user,
+      @HeaderParam(jakarta.ws.rs.core.HttpHeaders.USER_AGENT) String userAgent,
       @QueryParam("inviteLinkPassword") String inviteLinkPasswordString,
       @NoUnknownFields GroupChange.Actions submittedActions) {
     final byte[] inviteLinkPassword;
@@ -613,7 +618,20 @@ public class GroupsController {
                     user.getGroupId(), version, signedGroupChange, updatedGroupState)
                     .thenApply(success -> Response.ok(response).build());
               });
-        });
+        }).whenComplete(
+            (result, throwable) -> {
+              if (throwable != null) {
+                while (throwable instanceof CompletionException e && throwable.getCause() != null) {
+                  throwable = e.getCause();
+                }
+                if (throwable instanceof BadRequestException e) {
+                  final String reason = e.getMessage().replace(' ', '-').toLowerCase();
+                  Metrics.counter(
+                      GROUP_PATCH_BAD_REQUEST_COUNTER_NAME,
+                      Tags.of(UserAgentTagUtil.getPlatformTag(userAgent), Tag.of("reason", reason))).increment();
+                }
+              }
+            });
   }
 
   @Timed

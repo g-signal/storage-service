@@ -340,7 +340,7 @@ public class GroupValidator {
       GroupPublicParams publicParams = new GroupPublicParams(group.getPublicKey().toByteArray());
 
       if (presentationData == null || presentationData.isEmpty()) {
-        throw new BadRequestException();
+        throw new BadRequestException("empty profile key presentation");
       }
 
       ProfileKeyCredentialPresentation presentation = new ProfileKeyCredentialPresentation(presentationData.toByteArray());

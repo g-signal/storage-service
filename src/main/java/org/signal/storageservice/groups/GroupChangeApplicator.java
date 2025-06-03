@@ -55,26 +55,26 @@ public class GroupChangeApplicator {
     }
 
     if (CollectionUtil.containsDuplicates(addMembers.stream().map(action -> action.getAdded().getUserId()).collect(Collectors.toList()))) {
-      throw new BadRequestException();
+      throw new BadRequestException("duplicate group members in to-add list");
     }
 
     if (CollectionUtil.containsAny(group.getMembersList().stream().map(Member::getUserId).collect(Collectors.toList()),
                                    addMembers.stream().map(action -> action.getAdded().getUserId()).collect(Collectors.toList()))) {
-      throw new BadRequestException();
+      throw new BadRequestException("adding member already in group");
     }
 
     for (GroupChange.Actions.AddMemberAction action : addMembers) {
       final ByteString userId = action.getAdded().getUserId();
       if (userId == null || userId.isEmpty()) {
-        throw new BadRequestException();
+        throw new BadRequestException("adding member with no userid");
       }
 
       if (action.getAdded().getProfileKey() == null || action.getAdded().getProfileKey().isEmpty()) {
-        throw new BadRequestException();
+        throw new BadRequestException("adding member with no profile key");
       }
 
       if (action.getAdded().getRole() == Member.Role.UNKNOWN || action.getAdded().getRole() == Member.Role.UNRECOGNIZED) {
-        throw new BadRequestException();
+        throw new BadRequestException("adding member with unrecognized role");
       }
 
       modifiedGroupBuilder.addMembers(Member.newBuilder()
@@ -105,7 +105,7 @@ public class GroupChangeApplicator {
     }
 
     if (CollectionUtil.containsDuplicates(deleteMembers.stream().map(GroupChange.Actions.DeleteMemberAction::getDeletedUserId).collect(Collectors.toList()))) {
-      throw new BadRequestException();
+      throw new BadRequestException("duplicate group members in to-delete list");
     }
 
     if (!GroupAuth.isDeleteMembersAllowed(user, group, deleteMembers)) {
@@ -116,7 +116,7 @@ public class GroupChangeApplicator {
     Set<ByteString> deleteMemberUuids  = deleteMembers.stream().map(GroupChange.Actions.DeleteMemberAction::getDeletedUserId).collect(Collectors.toSet());
 
     if (!currentMemberUuids.containsAll(deleteMemberUuids)) {
-      throw new BadRequestException();
+      throw new BadRequestException("deleting user not present in group");
     }
 
     // XXX Remove last admin or last member?
@@ -133,15 +133,15 @@ public class GroupChangeApplicator {
     }
 
     if (modifyMembers.stream().anyMatch(modify -> modify.getUserId() == null || modify.getUserId().isEmpty())) {
-      throw new BadRequestException();
+      throw new BadRequestException("modifying user with no userid");
     }
 
     if (modifyMembers.stream().anyMatch(modify -> modify.getRole() == Member.Role.UNKNOWN || modify.getRole() == Member.Role.UNRECOGNIZED)) {
-      throw new BadRequestException();
+      throw new BadRequestException("modifying user with unrecognized role");
     }
 
     if (CollectionUtil.containsDuplicates(modifyMembers.stream().map(GroupChange.Actions.ModifyMemberRoleAction::getUserId).collect(Collectors.toList()))) {
-      throw new BadRequestException();
+      throw new BadRequestException("duplicate members in to-modify list");
     }
 
     if (!GroupAuth.isAdminstrator(user, group)) {
@@ -150,7 +150,7 @@ public class GroupChangeApplicator {
 
     if (!modifiedGroupBuilder.getMembersList().stream().map(Member::getUserId).collect(Collectors.toSet())
                              .containsAll(modifyMembers.stream().map(GroupChange.Actions.ModifyMemberRoleAction::getUserId).collect(Collectors.toList()))) {
-      throw new BadRequestException();
+      throw new BadRequestException("modifying user not in group");
     }
 
     List<Member> currentMembership = modifiedGroupBuilder.getMembersList();
@@ -215,7 +215,7 @@ public class GroupChangeApplicator {
     }
 
     if (CollectionUtil.containsDuplicates(addMembersPendingProfileKey.stream().map(pending -> pending.getAdded().getMember().getUserId()).collect(Collectors.toList()))) {
-      throw new BadRequestException();
+      throw new BadRequestException("duplicate members in add-pending-profile-key list");
     }
 
     Stream<ByteString> existingMembers                  = group.getMembersList().stream().map(Member::getUserId);
@@ -244,7 +244,7 @@ public class GroupChangeApplicator {
       }
 
       if (action.getAdded().getMember().getRole() == Member.Role.UNKNOWN || action.getAdded().getMember().getRole() == Member.Role.UNRECOGNIZED) {
-        throw new BadRequestException();
+        throw new BadRequestException("adding member pending profile id with unrecognized role");
       }
 
       modifiedGroupBuilder.addMembersPendingProfileKey(
@@ -267,7 +267,7 @@ public class GroupChangeApplicator {
     }
 
     if (CollectionUtil.containsDuplicates(deleteMembersPendingProfileKey.stream().map(GroupChange.Actions.DeleteMemberPendingProfileKeyAction::getDeletedUserId).collect(Collectors.toList()))) {
-      throw new BadRequestException();
+      throw new BadRequestException("duplicate members pending profile key in to-delete list");
     }
 
     if (!GroupAuth.isDeleteMembersPendingProfileKeyAllowed(user, group, deleteMembersPendingProfileKey)) {
@@ -278,7 +278,7 @@ public class GroupChangeApplicator {
     Set<ByteString> deleteMembersPendingProfileKeyUuids  = deleteMembersPendingProfileKey.stream().map(GroupChange.Actions.DeleteMemberPendingProfileKeyAction::getDeletedUserId).collect(Collectors.toSet());
 
     if (!currentMembersPendingProfileKeyUuids.containsAll(deleteMembersPendingProfileKeyUuids)) {
-      throw new BadRequestException();
+      throw new BadRequestException("deleting member pending profile id not present in group");
     }
 
     List<MemberPendingProfileKey> membership = modifiedGroupBuilder.getMembersPendingProfileKeyList()
@@ -354,7 +354,7 @@ public class GroupChangeApplicator {
     }
 
     if (modifyTitle.getTitle() == null || modifyTitle.getTitle().isEmpty()) {
-      throw new BadRequestException();
+      throw new BadRequestException("setting empty group title");
     }
 
     if (!GroupAuth.isModifyAttributesAllowed(user, group)) {
@@ -387,7 +387,7 @@ public class GroupChangeApplicator {
     }
 
     if (!groupValidator.isValidAvatarUrl(modifyAvatar.getAvatar(), user.getGroupId())) {
-      throw new BadRequestException();
+      throw new BadRequestException("invalid avatar url");
     }
 
     modifiedGroupBuilder.setAvatar(modifyAvatar.getAvatar());
@@ -408,12 +408,12 @@ public class GroupChangeApplicator {
 
   public void applyModifyAttributesAccess(GroupUser user, byte[] inviteLinkPassword, Group group, Group.Builder modifiedGroupBuilder, GroupChange.Actions.ModifyAttributesAccessControlAction modifyAttributesAccess) throws ForbiddenException, BadRequestException {
     if (modifyAttributesAccess == null || !modifyAttributesAccess.isInitialized()) {
-      throw new BadRequestException();
+      throw new BadRequestException("invalid modify-attributes-access proto");
     }
 
     if (modifyAttributesAccess.getAttributesAccess() != AccessControl.AccessRequired.ADMINISTRATOR &&
         modifyAttributesAccess.getAttributesAccess() != AccessControl.AccessRequired.MEMBER) {
-      throw new BadRequestException();
+      throw new BadRequestException("illegal attributes-access setting");
     }
 
     if (!GroupAuth.isAdminstrator(user, group)) {
@@ -425,12 +425,12 @@ public class GroupChangeApplicator {
 
   public void applyModifyMembersAccess(GroupUser user, byte[] inviteLinkPassword, Group group, Group.Builder modifiedGroupBuilder, GroupChange.Actions.ModifyMembersAccessControlAction modifyMembersAccess) throws ForbiddenException, BadRequestException {
     if (modifyMembersAccess == null || !modifyMembersAccess.isInitialized()) {
-      throw new BadRequestException();
+      throw new BadRequestException("invalid modify-members-access proto");
     }
 
     if (modifyMembersAccess.getMembersAccess() != AccessControl.AccessRequired.ADMINISTRATOR &&
         modifyMembersAccess.getMembersAccess() != AccessControl.AccessRequired.MEMBER) {
-      throw new BadRequestException();
+      throw new BadRequestException("illegal modify-members-access setting");
     }
 
     if (!GroupAuth.isAdminstrator(user, group)) {
@@ -448,7 +448,7 @@ public class GroupChangeApplicator {
     if (action.getAddFromInviteLinkAccess() != AccessControl.AccessRequired.ANY &&
         action.getAddFromInviteLinkAccess() != AccessControl.AccessRequired.ADMINISTRATOR &&
         action.getAddFromInviteLinkAccess() != AccessControl.AccessRequired.UNSATISFIABLE) {
-      throw new BadRequestException();
+      throw new BadRequestException("illegal add-from-invite-link-access setting");
     }
 
     modifiedGroupBuilder.setAccessControl(modifiedGroupBuilder.getAccessControlBuilder().setAddFromInviteLink(action.getAddFromInviteLinkAccess()));
