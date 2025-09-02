@@ -28,7 +28,7 @@
         <micrometer-bom.version>1.15.3</micrometer-bom.version>
         <protobuf.version>4.29.4</protobuf.version> <!-- must be less than or equal to the value from Google libraries-bom, see https://protobuf.dev/support/cross-version-runtime-guarantee/ -->
         <semver4j.version>3.1.0</semver4j.version>
-        <snakeyaml.version>2.4</snakeyaml.version>
+        <snakeyaml.version>2.5</snakeyaml.version>
         <syslog4j.version>0.9.30</syslog4j.version>
 
         <!-- test -->
