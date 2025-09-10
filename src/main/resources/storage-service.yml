@@ -1,0 +1,39 @@
+bigtable: # BigTableConfiguration
+  keyFilePath: # String, NotEmpty, 授权文件
+  projectId: # String, NotEmpty
+  instanceId: # String, NotEmpty
+  contactManifestsTableId: # String, NotEmpty
+  contactsTableId: # String, NotEmpty
+  groupsTableId: # String, NotEmpty
+  groupLogsTableId: # String, NotEmpty
+
+authentication: # AuthenticationConfiguration
+  key: # String, NotEmpty
+
+zkConfig: # ZkConfiguration
+  serverSecret: # byte[], @NotNull
+
+
+cdn: # CdnConfiguration
+  accessKey: # String, NotEmpty
+  accessSecret: # String, NotEmpty
+  bucket: # String, NotEmpty
+  region: # String, NotEmpty
+
+
+group: # GroupConfiguration
+  maxGroupSize: # int, Positive
+  maxGroupTitleLengthBytes: # int, Positive
+  maxGroupDescriptionLengthBytes: # int, Positive
+  externalServiceSecret: # ExactlySize(32) byte[]
+  groupSendEndorsementExpirationTime: P1D # Duration
+  groupSendEndorsementMinimumLifetime: T6H # Duration
+
+datadog: # DatadogConfiguration, https://www.datadoghq.com/
+  apiKey: # String, NotEmpty
+  step: T10S # Duration
+  environment: # String, NotEmpty
+  batchSize: 5000 # int, Min(1)
+
+warmup: # WarmupConfiguration
+  count: 5 # int

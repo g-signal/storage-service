@@ -10,6 +10,12 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.validation.constraints.NotEmpty;
 
 public class BigTableConfiguration {
+  @JsonProperty
+  @NotEmpty
+  private String keyFilePath;
+
+
+
 
   @JsonProperty
   @NotEmpty
@@ -35,6 +41,10 @@ public class BigTableConfiguration {
   @NotEmpty
   private String groupLogsTableId;
 
+
+  public String getKeyFilePath() {
+    return keyFilePath;
+  }
 
   public String getProjectId() {
     return projectId;
