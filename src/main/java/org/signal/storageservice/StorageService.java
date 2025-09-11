@@ -8,9 +8,6 @@ package org.signal.storageservice;
 import com.fasterxml.jackson.annotation.JsonAutoDetect;
 import com.fasterxml.jackson.annotation.PropertyAccessor;
 import com.fasterxml.jackson.databind.DeserializationFeature;
-import com.google.api.gax.core.CredentialsProvider;
-import com.google.auth.Credentials;
-import com.google.auth.oauth2.GoogleCredentials;
 import com.google.cloud.bigtable.data.v2.BigtableDataClient;
 import com.google.cloud.bigtable.data.v2.BigtableDataSettings;
 import com.google.common.collect.ImmutableMap;
@@ -23,12 +20,10 @@ import io.dropwizard.auth.basic.BasicCredentials;
 import io.dropwizard.core.Application;
 import io.dropwizard.core.setup.Bootstrap;
 import io.dropwizard.core.setup.Environment;
-import java.io.ByteArrayInputStream;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.time.Clock;
 import java.util.Set;
+import io.dropwizard.util.DataSize;
+import org.glassfish.jersey.CommonProperties;
 import org.signal.libsignal.zkgroup.ServerSecretParams;
 import org.signal.libsignal.zkgroup.auth.ServerZkAuthOperations;
 import org.signal.storageservice.auth.ExternalGroupCredentialGenerator;
@@ -67,18 +62,10 @@ public class StorageService extends Application<StorageServiceConfiguration> {
 
     UncaughtExceptionHandler.register();
 
-    GoogleCredentials credentials = GoogleCredentials.fromStream(new FileInputStream(new File(config.getBigTableConfiguration().getKeyFilePath())));
-
     BigtableDataSettings bigtableDataSettings = BigtableDataSettings.newBuilder()
-                                                                    .setProjectId(config.getBigTableConfiguration().getProjectId())
-                                                                    .setInstanceId(config.getBigTableConfiguration().getInstanceId())
-                                                                    .setCredentialsProvider(new CredentialsProvider() {
-                                                                      @Override
-                                                                      public Credentials getCredentials() throws IOException {
-                                                                        return credentials;
-                                                                      }
-                                                                    })
-                                                                    .build();
+        .setProjectId(config.getBigTableConfiguration().getProjectId())
+        .setInstanceId(config.getBigTableConfiguration().getInstanceId())
+        .build();
     BigtableDataClient bigtableDataClient = BigtableDataClient.create(bigtableDataSettings);
     ServerSecretParams serverSecretParams = new ServerSecretParams(config.getZkConfiguration().getServerSecret());
     StorageManager     storageManager     = new StorageManager(bigtableDataClient, config.getBigTableConfiguration().getContactManifestsTableId(), config.getBigTableConfiguration().getContactsTableId());

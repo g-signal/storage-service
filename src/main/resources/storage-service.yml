@@ -1,5 +1,4 @@
 bigtable: # BigTableConfiguration
-  keyFilePath: # String, NotEmpty, 授权文件
   projectId: # String, NotEmpty
   instanceId: # String, NotEmpty
   contactManifestsTableId: # String, NotEmpty
