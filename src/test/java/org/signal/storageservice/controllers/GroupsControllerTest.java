@@ -59,6 +59,7 @@ import org.signal.storageservice.storage.protos.groups.ExternalGroupCredential;
 import org.signal.storageservice.storage.protos.groups.Group;
 import org.signal.storageservice.storage.protos.groups.GroupChange;
 import org.signal.storageservice.storage.protos.groups.GroupChange.Actions;
+import org.signal.storageservice.storage.protos.groups.GroupChange.Actions.DeleteMemberBannedAction;
 import org.signal.storageservice.storage.protos.groups.GroupChange.Actions.ModifyAvatarAction;
 import org.signal.storageservice.storage.protos.groups.GroupChange.Actions.ModifyTitleAction;
 import org.signal.storageservice.storage.protos.groups.GroupChange.Actions.PromoteMemberPendingPniAciProfileKeyAction;
@@ -69,6 +70,7 @@ import org.signal.storageservice.storage.protos.groups.GroupJoinInfo;
 import org.signal.storageservice.storage.protos.groups.GroupResponse;
 import org.signal.storageservice.storage.protos.groups.Member;
 import org.signal.storageservice.storage.protos.groups.Member.Role;
+import org.signal.storageservice.storage.protos.groups.MemberBanned;
 import org.signal.storageservice.storage.protos.groups.MemberPendingAdminApproval;
 import org.signal.storageservice.storage.protos.groups.MemberPendingProfileKey;
 import org.signal.storageservice.util.AuthHelper;
@@ -3067,6 +3069,128 @@ class GroupsControllerTest extends BaseGroupsControllerTest {
         AuthHelper.VALID_USER_TWO, List.of(AuthHelper.VALID_USER), groupSecretParams, responseProto.getGroupSendEndorsementsResponse(), issueTime, lastValidTime);
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
         new NotarySignature(signedChange.getServerSignature().toByteArray()));
+  }
+
+  @Test
+  public void testAcceptMemberPendingByPniWhenBannedByAci() throws Exception {
+    GroupSecretParams groupSecretParams = GroupSecretParams.generate();
+    GroupPublicParams groupPublicParams = groupSecretParams.getPublicParams();
+
+    ProfileKeyCredentialPresentation validUserPresentation =
+      new ClientZkProfileOperations(AuthHelper.GROUPS_SERVER_KEY.getPublicParams())
+        .createProfileKeyCredentialPresentation(groupSecretParams, AuthHelper.VALID_USER_PROFILE_CREDENTIAL);
+
+    ProfileKeyCredentialPresentation validUserTwoPresentation =
+      new ClientZkProfileOperations(AuthHelper.GROUPS_SERVER_KEY.getPublicParams())
+        .createProfileKeyCredentialPresentation(groupSecretParams, AuthHelper.VALID_USER_TWO_PROFILE_CREDENTIAL);
+
+    final ByteString pniCiphertext = ByteString.copyFrom(
+      new ClientZkAuthOperations(AuthHelper.GROUPS_SERVER_KEY.getPublicParams())
+        .createAuthCredentialPresentation(groupSecretParams, AuthHelper.VALID_USER_TWO_AUTH_CREDENTIAL)
+        .getPniCiphertext()
+        .serialize());
+
+    Group group = Group.newBuilder()
+      .setPublicKey(ByteString.copyFrom(groupPublicParams.serialize()))
+      .setAccessControl(AccessControl.newBuilder()
+        .setMembers(AccessControl.AccessRequired.ADMINISTRATOR)
+        .setAttributes(AccessControl.AccessRequired.MEMBER))
+      .setTitle(ByteString.copyFromUtf8("Some title"))
+      .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+      .setVersion(0)
+      .addMembers(Member.newBuilder()
+        .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
+        .setProfileKey(ByteString.copyFrom(validUserPresentation.getProfileKeyCiphertext().serialize()))
+        .setRole(Member.Role.ADMINISTRATOR)
+        .build())
+      .addMembersBanned(MemberBanned.newBuilder()
+        .setUserId(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()))
+        .setTimestamp(System.currentTimeMillis())
+        .build())
+      .addMembersPendingProfileKey(MemberPendingProfileKey.newBuilder()
+        .setAddedByUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
+        .setTimestamp(System.currentTimeMillis())
+        .setMember(Member.newBuilder()
+          .setUserId(pniCiphertext)
+          .setRole(Member.Role.DEFAULT)
+          .build())
+        .build())
+      .build();
+
+    when(groupsManager.getGroup(eq(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize()))))
+      .thenReturn(CompletableFuture.completedFuture(Optional.of(group)));
+
+    when(groupsManager.updateGroup(eq(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize())), any(Group.class)))
+      .thenReturn(CompletableFuture.completedFuture(Optional.empty()));
+
+    when(groupsManager.appendChangeRecord(eq(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize())), eq(1), any(GroupChange.class), any(Group.class)))
+      .thenReturn(CompletableFuture.completedFuture(true));
+
+    GroupChange.Actions groupChange = Actions.newBuilder()
+      .setVersion(1)
+      .addPromoteMembersPendingPniAciProfileKey(Actions.PromoteMemberPendingPniAciProfileKeyAction.newBuilder()
+        .setPresentation(ByteString.copyFrom(validUserTwoPresentation.serialize())))
+      .build();
+
+    Response response = resources.getJerseyTest()
+      .target("/v2/groups/")
+      .request(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
+      .header("Authorization", AuthHelper.getAuthHeader(groupSecretParams, AuthHelper.VALID_USER_TWO_AUTH_CREDENTIAL))
+      .method("PATCH", Entity.entity(groupChange.toByteArray(), ProtocolBufferMediaType.APPLICATION_PROTOBUF));
+
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.hasEntity()).isTrue();
+    assertThat(response.getMediaType().toString()).isEqualTo("application/x-protobuf");
+
+    final GroupChangeResponse responseProto = GroupChangeResponse.parseFrom(response.readEntity(InputStream.class).readAllBytes());
+    final GroupChange signedChange = responseProto.getGroupChange();
+
+    ArgumentCaptor<Group> captor = ArgumentCaptor.forClass(Group.class);
+    ArgumentCaptor<GroupChange> changeCaptor = ArgumentCaptor.forClass(GroupChange.class);
+
+    verify(groupsManager).updateGroup(eq(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize())), captor.capture());
+    verify(groupsManager).appendChangeRecord(eq(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize())), eq(1), changeCaptor.capture(), any(Group.class));
+
+    assertThat(captor.getValue().getMembersCount()).isEqualTo(2);
+    assertThat(captor.getValue().getMembers(1).getJoinedAtVersion()).isEqualTo(1);
+    assertThat(captor.getValue().getMembers(1).getPresentation()).isEmpty();
+    assertThat(captor.getValue().getMembers(1).getProfileKey()).isEqualTo(ByteString.copyFrom(validUserTwoPresentation.getProfileKeyCiphertext().serialize()));
+    assertThat(captor.getValue().getMembers(1).getRole()).isEqualTo(Member.Role.DEFAULT);
+    assertThat(captor.getValue().getMembers(1).getUserId()).isEqualTo(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()));
+    assertThat(captor.getValue().getMembersPendingProfileKeyCount()).isEqualTo(0);
+    assertThat(captor.getValue().getMembersBannedCount()).isEqualTo(0);
+
+    assertThat(captor.getValue().getVersion()).isEqualTo(1);
+
+    assertThat(captor.getValue().toBuilder()
+      .setVersion(0)
+      .build()).isEqualTo(group.toBuilder()
+        .removeMembersPendingProfileKey(0)
+        .addMembers(Member.newBuilder()
+          .setRole(Member.Role.DEFAULT)
+          .setProfileKey(ByteString.copyFrom(validUserTwoPresentation.getProfileKeyCiphertext().serialize()))
+          .setUserId(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()))
+          .setJoinedAtVersion(1)
+          .build())
+        .removeMembersBanned(0)
+        .build());
+
+    assertThat(signedChange).isEqualTo(changeCaptor.getValue());
+    assertThat(signedChange.getChangeEpoch()).isEqualTo(5);
+
+    final Actions actions = Actions.parseFrom(signedChange.getActions());
+    assertThat(actions.getVersion()).isEqualTo(1);
+    assertThat(actions.getSourceUuid()).isEqualTo(pniCiphertext);
+
+    assertThat(actions.getPromoteMembersPendingPniAciProfileKeyCount()).isEqualTo(1);
+    final PromoteMemberPendingPniAciProfileKeyAction promoteAction = actions.getPromoteMembersPendingPniAciProfileKey(0);
+    assertThat(promoteAction.getPresentation().isEmpty()).isTrue();
+    assertThat(promoteAction.getUserId().isEmpty()).isFalse();
+    assertThat(promoteAction.getPni().isEmpty()).isFalse();
+    assertThat(promoteAction.getProfileKey().isEmpty()).isFalse();
+
+    assertThat(actions.getDeleteMembersBannedList()).containsExactly(
+      DeleteMemberBannedAction.newBuilder().setDeletedUserId(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize())).build());
   }
 
   @Test

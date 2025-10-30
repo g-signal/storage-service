@@ -574,12 +574,14 @@ public class GroupsController {
         groupChangeApplicator.applyModifyAnnouncementsOnly(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getModifyAnnouncementsOnly());
         changeEpoch = Math.max(changeEpoch, ANNOUNCEMENTS_ONLY_CHANGE_EPOCH);
       }
+
+      final Actions.Builder actionsBuilder = actions.toBuilder();
+
       if (actions.getPromoteMembersPendingPniAciProfileKeyCount() != 0) {
-        groupChangeApplicator.applyPromoteMembersPendingPniAciProfileKey(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getPromoteMembersPendingPniAciProfileKeyList());
+        groupChangeApplicator.applyPromoteMembersPendingPniAciProfileKey(group.get(), modifiedGroupBuilder, actionsBuilder);
         changeEpoch = Math.max(changeEpoch, JOIN_BY_PNI_EPOCH);
       }
 
-      Actions.Builder actionsBuilder = actions.toBuilder();
       // this must be the last change applied
       groupChangeApplicator.applyEnsureSomeAdminsExist(actionsBuilder, modifiedGroupBuilder);
 

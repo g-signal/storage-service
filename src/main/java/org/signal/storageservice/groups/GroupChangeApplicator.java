@@ -6,11 +6,14 @@
 package org.signal.storageservice.groups;
 
 import com.google.protobuf.ByteString;
+import java.util.Collection;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import jakarta.ws.rs.BadRequestException;
@@ -22,6 +25,7 @@ import org.signal.storageservice.storage.protos.groups.GroupChange;
 import org.signal.storageservice.storage.protos.groups.GroupChange.Actions;
 import org.signal.storageservice.storage.protos.groups.GroupChange.Actions.AddMemberBannedAction;
 import org.signal.storageservice.storage.protos.groups.GroupChange.Actions.DeleteMemberBannedAction;
+import org.signal.storageservice.storage.protos.groups.GroupChange.Actions.PromoteMemberPendingPniAciProfileKeyAction;
 import org.signal.storageservice.storage.protos.groups.Member;
 import org.signal.storageservice.storage.protos.groups.Member.Role;
 import org.signal.storageservice.storage.protos.groups.MemberBanned;
@@ -316,34 +320,63 @@ public class GroupChangeApplicator {
     }
   }
 
-  public void applyPromoteMembersPendingPniAciProfileKey(GroupUser user, byte[] inviteLinkPassword, Group group, Group.Builder modifiedGroupBuilder, List<GroupChange.Actions.PromoteMemberPendingPniAciProfileKeyAction> promoteMembersPendingPniAciProfileKey)
+  public void applyPromoteMembersPendingPniAciProfileKey(Group group, Group.Builder modifiedGroupBuilder, GroupChange.Actions.Builder actionsBuilder)
       throws BadRequestException, ForbiddenException {
 
-    if (promoteMembersPendingPniAciProfileKey.isEmpty()) {
-      return;
+    final LinkedHashMap<ByteString, MemberPendingProfileKey> membersPendingProfileKey =
+      modifiedGroupBuilder.getMembersPendingProfileKeyList()
+        .stream()
+        .sequential()
+        .collect(Collectors.toMap(mppk -> mppk.getMember().getUserId(), Function.identity(), (a, b) -> a, LinkedHashMap::new));
+
+    final LinkedHashMap<ByteString, MemberBanned> membersBanned = modifiedGroupBuilder.getMembersBannedList()
+      .stream()
+      .sequential()
+      .collect(Collectors.toMap(MemberBanned::getUserId, Function.identity(), (a, b) -> a, LinkedHashMap::new));
+
+    final Collection<PromoteMemberPendingPniAciProfileKeyAction> membersToPromote =
+      actionsBuilder.getPromoteMembersPendingPniAciProfileKeyList()
+        .stream()
+        .filter(action -> membersPendingProfileKey.containsKey(action.getPni()))
+        .collect(Collectors.toUnmodifiableMap(PromoteMemberPendingPniAciProfileKeyAction::getPni, Function.identity(), (a, b) -> a))
+        .values();
+
+    // this could fail due to either duplicates or attempting to promote a member that wasn't pending by PNI
+    if (membersToPromote.size() != actionsBuilder.getPromoteMembersPendingPniAciProfileKeyCount()) {
+      throw new ForbiddenException();
     }
 
-    for (GroupChange.Actions.PromoteMemberPendingPniAciProfileKeyAction action : promoteMembersPendingPniAciProfileKey) {
-      final List<MemberPendingProfileKey> membersPendingProfileKey = modifiedGroupBuilder.getMembersPendingProfileKeyList();
+    final int newVersion = group.getVersion() + 1;
+    membersToPromote.forEach(action -> {
+      final ByteString aci = action.getUserId();
 
-      final MemberPendingProfileKey memberPendingProfileKey = membersPendingProfileKey.stream()
-          .filter(candidate -> candidate.getMember().getUserId().equals(action.getPni()))
-          .findFirst()
-          .orElseThrow(ForbiddenException::new);
+      // the PNI is no longer a pending member
+      final MemberPendingProfileKey pendingMember = membersPendingProfileKey.remove(action.getPni());
 
-      modifiedGroupBuilder.clearMembersPendingProfileKey()
-          .addAllMembersPendingProfileKey(membersPendingProfileKey.stream()
-              .filter(candidate -> !(candidate.getMember().getUserId().equals(action.getUserId()) || candidate.getMember().getUserId().equals(action.getPni())))
-              .collect(Collectors.toList()));
-
-      modifiedGroupBuilder.addMembers(memberPendingProfileKey.getMember()
+      // the pending member becomes the new member
+      modifiedGroupBuilder.addMembers(
+        pendingMember.getMember()
           .toBuilder()
           .clearPresentation()
-          .clearProfileKey()
-          .clearUserId()
-          .setUserId(action.getUserId())
+          .setUserId(aci)
           .setProfileKey(action.getProfileKey())
-          .setJoinedAtVersion(group.getVersion() + 1));
+          .setJoinedAtVersion(newVersion));
+
+      // if they were also pending by ACI, that's also no longer  the case, but we don't add them a second time
+      membersPendingProfileKey.remove(aci);
+
+      // they can't have been banned by PNI because we enforce that a member
+      // can't be both pending and banned, but their ACI might have been
+      // banned, in which case we need to generate a synthetic unban
+      if (membersBanned.containsKey(aci)) {
+        actionsBuilder.addDeleteMembersBanned(DeleteMemberBannedAction.newBuilder().setDeletedUserId(aci));
+        membersBanned.remove(aci);
+      }
+    });
+
+    modifiedGroupBuilder.clearMembersPendingProfileKey().addAllMembersPendingProfileKey(membersPendingProfileKey.values());
+    if (membersBanned.size() != modifiedGroupBuilder.getMembersBannedCount()) {
+      modifiedGroupBuilder.clearMembersBanned().addAllMembersBanned(membersBanned.values());
     }
   }
 
