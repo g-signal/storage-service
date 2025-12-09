@@ -339,8 +339,7 @@ public class GroupsController {
 
   private static DistributionSummary distributionSummary(final String name, final String userAgent) {
     return DistributionSummary.builder(name)
-        .publishPercentiles(0.75, 0.95, 0.99, 0.999)
-        .distributionStatisticExpiry(Duration.ofMinutes(5))
+        .publishPercentileHistogram(true)
         .tags(Tags.of(UserAgentTagUtil.getPlatformTag(userAgent)))
         .register(Metrics.globalRegistry);
   }

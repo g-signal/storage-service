@@ -12,6 +12,7 @@ import org.signal.storageservice.configuration.AuthenticationConfiguration;
 import org.signal.storageservice.configuration.BigTableConfiguration;
 import org.signal.storageservice.configuration.CdnConfiguration;
 import org.signal.storageservice.configuration.DatadogConfiguration;
+import org.signal.storageservice.configuration.OpenTelemetryConfiguration;
 import org.signal.storageservice.configuration.GroupConfiguration;
 import org.signal.storageservice.configuration.WarmupConfiguration;
 import org.signal.storageservice.configuration.ZkConfiguration;
@@ -58,6 +59,11 @@ public class StorageServiceConfiguration extends Configuration {
   @JsonProperty
   @Valid
   @NotNull
+  private OpenTelemetryConfiguration openTelemetry;
+
+  @JsonProperty
+  @Valid
+  @NotNull
   private WarmupConfiguration warmup = new WarmupConfiguration(5);
 
   @JsonProperty
@@ -86,6 +92,10 @@ public class StorageServiceConfiguration extends Configuration {
 
   public DatadogConfiguration getDatadogConfiguration() {
     return datadog;
+  }
+
+  public OpenTelemetryConfiguration getOpenTelemetryConfiguration() {
+    return openTelemetry;
   }
 
   public WarmupConfiguration getWarmUpConfiguration() {

@@ -5,8 +5,8 @@
 
 package org.signal.storageservice.metrics;
 
-import com.codahale.metrics.SharedMetricRegistries;
 import io.dropwizard.core.setup.Environment;
+import io.micrometer.core.instrument.Clock;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
@@ -14,6 +14,8 @@ import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
 import io.micrometer.core.instrument.binder.system.FileDescriptorMetrics;
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
 import io.micrometer.datadog.DatadogMeterRegistry;
+import io.micrometer.registry.otlp.OtlpMeterRegistry;
+
 import org.signal.storageservice.StorageServiceConfiguration;
 import org.signal.storageservice.StorageServiceVersion;
 import org.signal.storageservice.util.HostSupplier;
@@ -48,11 +50,9 @@ public class MetricsUtil {
 
     registeredMetrics = true;
 
-    SharedMetricRegistries.add(StorageMetrics.NAME, environment.metrics());
-
-    {
+    if (config.getDatadogConfiguration().enabled()) {
       final DatadogMeterRegistry datadogMeterRegistry = new DatadogMeterRegistry(
-              config.getDatadogConfiguration(), io.micrometer.core.instrument.Clock.SYSTEM);
+              config.getDatadogConfiguration(), Clock.SYSTEM);
 
       datadogMeterRegistry.config().commonTags(
               Tags.of(
@@ -62,6 +62,10 @@ public class MetricsUtil {
                       "env", config.getDatadogConfiguration().getEnvironment()));
 
       Metrics.addRegistry(datadogMeterRegistry);
+    }
+    if (config.getOpenTelemetryConfiguration().enabled()) {
+      final OtlpMeterRegistry otlpMeterRegistry = new OtlpMeterRegistry(config.getOpenTelemetryConfiguration(), Clock.SYSTEM);
+      Metrics.addRegistry(otlpMeterRegistry);
     }
   }
 

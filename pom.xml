@@ -149,6 +149,10 @@
             <artifactId>micrometer-registry-datadog</artifactId>
         </dependency>
         <dependency>
+          <groupId>io.micrometer</groupId>
+          <artifactId>micrometer-registry-otlp</artifactId>
+        </dependency>
+        <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
         </dependency>

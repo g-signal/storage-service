@@ -5,7 +5,7 @@
 
 package org.signal.storageservice.groups;
 
-import static com.codahale.metrics.MetricRegistry.name;
+import static org.signal.storageservice.metrics.MetricsUtil.name;
 
 import com.google.protobuf.ByteString;
 import io.micrometer.core.instrument.Metrics;
