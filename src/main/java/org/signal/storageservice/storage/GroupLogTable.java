@@ -5,11 +5,6 @@
 
 package org.signal.storageservice.storage;
 
-import static com.codahale.metrics.MetricRegistry.name;
-
-import com.codahale.metrics.MetricRegistry;
-import com.codahale.metrics.SharedMetricRegistries;
-import com.codahale.metrics.Timer;
 import com.google.api.gax.rpc.ResponseObserver;
 import com.google.api.gax.rpc.StreamController;
 import com.google.cloud.bigtable.data.v2.BigtableDataClient;
@@ -22,7 +17,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import javax.annotation.Nullable;
-import org.signal.storageservice.metrics.StorageMetrics;
 import org.signal.storageservice.storage.protos.groups.Group;
 import org.signal.storageservice.storage.protos.groups.GroupChange;
 import org.signal.storageservice.storage.protos.groups.GroupChanges.GroupChangeState;
@@ -37,29 +31,24 @@ public class GroupLogTable extends Table {
   public static final String COLUMN_CHANGE    = "c";
   public static final String COLUMN_STATE     = "s";
 
-  private final MetricRegistry metricRegistry      = SharedMetricRegistries.getOrCreate(StorageMetrics.NAME);
-  private final Timer          appendTimer         = metricRegistry.timer(name(GroupLogTable.class, "append"        ));
-  private final Timer          getFromVersionTimer = metricRegistry.timer(name(GroupLogTable.class, "getFromVersion"));
-
   public GroupLogTable(BigtableDataClient client, String tableId) {
     super(client, tableId);
   }
 
   public CompletableFuture<Boolean> append(ByteString groupId, int version, GroupChange groupChange, Group group) {
-    return setIfEmpty(appendTimer,
-                      getRowId(groupId, version),
-                      FAMILY, COLUMN_CHANGE,
-                      Mutation.create()
-                              .setCell(FAMILY, ByteString.copyFromUtf8(COLUMN_CHANGE), 0L, groupChange.toByteString())
-                              .setCell(FAMILY, COLUMN_VERSION, 0, String.valueOf(version))
-                              .setCell(FAMILY, ByteString.copyFromUtf8(COLUMN_STATE), 0L, group.toByteString()));
+    return setIfEmpty(
+      getRowId(groupId, version),
+      FAMILY, COLUMN_CHANGE,
+      Mutation.create()
+        .setCell(FAMILY, ByteString.copyFromUtf8(COLUMN_CHANGE), 0L, groupChange.toByteString())
+        .setCell(FAMILY, COLUMN_VERSION, 0, String.valueOf(version))
+        .setCell(FAMILY, ByteString.copyFromUtf8(COLUMN_STATE), 0L, group.toByteString()));
   }
 
   public CompletableFuture<Pair<List<GroupChangeState>, Boolean>> getRecordsFromVersion(ByteString groupId,
       @Nullable Integer maxSupportedChangeEpoch, boolean includeFirstState, boolean includeLastState,
       int fromVersionInclusive, int toVersionExclusive, int currentVersion) {
 
-    Timer.Context timerContext = getFromVersionTimer.time();
     CompletableFuture<Pair<List<GroupChangeState>, Boolean>> future = new CompletableFuture<>();
     Query query = Query.create(tableId);
 
@@ -94,13 +83,11 @@ public class GroupLogTable extends Table {
 
       @Override
       public void onError(Throwable t) {
-        timerContext.close();
         future.completeExceptionally(t);
       }
 
       @Override
       public void onComplete() {
-        timerContext.close();
         future.complete(new Pair<>(results, seenCurrentVersion));
       }
     });
