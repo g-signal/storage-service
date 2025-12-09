@@ -5,7 +5,6 @@
 
 package org.signal.storageservice.metrics;
 
-import com.codahale.metrics.Gauge;
 import com.sun.management.OperatingSystemMXBean;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.binder.MeterBinder;
@@ -14,7 +13,7 @@ import java.lang.management.ManagementFactory;
 
 import static org.signal.storageservice.metrics.MetricsUtil.name;
 
-public class FreeMemoryGauge implements Gauge<Long>, MeterBinder {
+public class FreeMemoryGauge implements MeterBinder {
 
   private final OperatingSystemMXBean operatingSystemMXBean;
 
@@ -23,7 +22,6 @@ public class FreeMemoryGauge implements Gauge<Long>, MeterBinder {
         ManagementFactory.getOperatingSystemMXBean();
   }
 
-  @Override
   public Long getValue() {
     return operatingSystemMXBean.getFreeMemorySize();
   }

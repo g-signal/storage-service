@@ -67,14 +67,6 @@ public class MetricsUtil {
 
 
   public static void registerSystemResourceMetrics(final Environment environment) {
-    // Dropwizard metrics - some are temporarily duplicated for continuity
-    environment.metrics().register(name(CpuUsageGauge.class, "cpu"), new CpuUsageGauge());
-    environment.metrics().register(name(FreeMemoryGauge.class, "free_memory"), new FreeMemoryGauge());
-    environment.metrics().register(name(NetworkSentGauge.class, "bytes_sent"), new NetworkSentGauge());
-    environment.metrics().register(name(NetworkReceivedGauge.class, "bytes_received"), new NetworkReceivedGauge());
-    environment.metrics().register(name(FileDescriptorGauge.class, "fd_count"), new FileDescriptorGauge());
-
-    // Micrometer metrics
     new ProcessorMetrics().bindTo(Metrics.globalRegistry);
     new FreeMemoryGauge().bindTo(Metrics.globalRegistry);
     new FileDescriptorMetrics().bindTo(Metrics.globalRegistry);
