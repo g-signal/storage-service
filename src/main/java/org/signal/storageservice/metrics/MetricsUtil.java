@@ -7,12 +7,15 @@ package org.signal.storageservice.metrics;
 
 import io.dropwizard.core.setup.Environment;
 import io.micrometer.core.instrument.Clock;
+import io.micrometer.core.instrument.Meter;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tags;
 import io.micrometer.core.instrument.binder.jvm.JvmMemoryMetrics;
 import io.micrometer.core.instrument.binder.jvm.JvmThreadMetrics;
 import io.micrometer.core.instrument.binder.system.FileDescriptorMetrics;
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
+import io.micrometer.core.instrument.config.MeterFilter;
+import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
 import io.micrometer.datadog.DatadogMeterRegistry;
 import io.micrometer.registry.otlp.OtlpMeterRegistry;
 
@@ -66,6 +69,13 @@ public class MetricsUtil {
     if (config.getOpenTelemetryConfiguration().enabled()) {
       final OtlpMeterRegistry otlpMeterRegistry = new OtlpMeterRegistry(config.getOpenTelemetryConfiguration(), Clock.SYSTEM);
       Metrics.addRegistry(otlpMeterRegistry);
+      final DistributionStatisticConfig defaultDistributionStatisticConfig = DistributionStatisticConfig.builder().percentilesHistogram(true).build();
+      otlpMeterRegistry.config().meterFilter(new MeterFilter() {
+        @Override
+        public DistributionStatisticConfig configure(final Meter.Id id, final DistributionStatisticConfig config) {
+          return defaultDistributionStatisticConfig.merge(config);
+        }
+      });
     }
   }
 
