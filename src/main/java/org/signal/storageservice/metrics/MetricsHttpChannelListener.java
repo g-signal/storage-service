@@ -44,10 +44,9 @@ public class MetricsHttpChannelListener implements HttpChannel.Listener, Contain
   private record RequestInfo(String path, String method, int statusCode, @Nullable String userAgent) {
   }
 
-  // Use the same counter namespace as the now-retired MetricsRequestEventListener for continuity
   @VisibleForTesting
   static final String REQUEST_COUNTER_NAME =
-      "org.signal.storageservice.metrics.MetricsRequestEventListener.request";
+    MetricsUtil.name(MetricsHttpChannelListener.class, "request");
 
   @VisibleForTesting
   static final String REQUEST_BYTES_COUNTER_NAME =
