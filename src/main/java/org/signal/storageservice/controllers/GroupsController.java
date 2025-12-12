@@ -107,7 +107,7 @@ public class GroupsController {
   private final Timer getGroupTimer = Metrics.timer(name(GroupsController.class, "getGroup"));
   private final Timer getGroupLogsTimer = Metrics.timer(name(GroupsController.class, "getGroupLogs"));
   private final Timer createGroupTimer = Metrics.timer(name(GroupsController.class, "createGroup"));
-  private final Timer modifyGroupTimer = Metrics.timer(name(GroupsController.class, "createGroup"));
+  private final Timer modifyGroupTimer = Metrics.timer(name(GroupsController.class, "modifyGroup"));
 
   private final PolicySigner policySigner;
   private final PostPolicyGenerator policyGenerator;
