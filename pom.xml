@@ -21,8 +21,7 @@
         <google-cloud-libraries.version>26.68.0</google-cloud-libraries.version>
         <jackson-bom.version>2.20.0</jackson-bom.version>
         <libsignal-server.version>0.81.1</libsignal-server.version>
-        <!-- Logback 1.5.14+ has a null pointer bug: https://github.com/qos-ch/logback/issues/929. -->
-        <logback.version>1.5.13</logback.version>
+        <logback.version>1.5.23</logback.version>
         <logback-access.version>2.0.6</logback-access.version>
         <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version>
         <micrometer-bom.version>1.15.4</micrometer-bom.version>
