@@ -20,6 +20,7 @@ import io.micrometer.core.instrument.Tag;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import io.micrometer.core.instrument.Tags;
 import org.eclipse.jetty.http.HttpURI;
 import org.eclipse.jetty.server.Request;
 import org.eclipse.jetty.server.Response;
@@ -44,23 +45,19 @@ class MetricsHttpChannelListenerTest {
     requestBytesCounter = mock(Counter.class);
     responseBytesCounter = mock(Counter.class);
 
-    //noinspection unchecked
-    when(meterRegistry.counter(eq(MetricsHttpChannelListener.REQUEST_COUNTER_NAME), any(Iterable.class)))
+    when(meterRegistry.counter(eq(MetricsHttpChannelListener.REQUEST_COUNTER_NAME), any(Tags.class)))
         .thenReturn(requestCounter);
 
-    //noinspection unchecked
-    when(meterRegistry.counter(eq(MetricsHttpChannelListener.REQUEST_BYTES_COUNTER_NAME), any(Iterable.class)))
+    when(meterRegistry.counter(eq(MetricsHttpChannelListener.REQUEST_BYTES_COUNTER_NAME), any(Tags.class)))
         .thenReturn(requestBytesCounter);
 
-    //noinspection unchecked
-    when(meterRegistry.counter(eq(MetricsHttpChannelListener.RESPONSE_BYTES_COUNTER_NAME), any(Iterable.class)))
+    when(meterRegistry.counter(eq(MetricsHttpChannelListener.RESPONSE_BYTES_COUNTER_NAME), any(Tags.class)))
         .thenReturn(responseBytesCounter);
 
     listener = new MetricsHttpChannelListener(meterRegistry);
   }
 
   @Test
-  @SuppressWarnings("unchecked")
   void testRequests() {
     final String path = "/test";
     final String method = "GET";
@@ -85,7 +82,7 @@ class MetricsHttpChannelListenerTest {
     when(request.getAttribute(MetricsHttpChannelListener.URI_INFO_PROPERTY_NAME)).thenReturn(extendedUriInfo);
     when(extendedUriInfo.getMatchedTemplates()).thenReturn(List.of(new UriTemplate(path)));
 
-    final ArgumentCaptor<Iterable<Tag>> tagCaptor = ArgumentCaptor.forClass(Iterable.class);
+    final ArgumentCaptor<Tags> tagCaptor = ArgumentCaptor.forClass(Tags.class);
 
     listener.onComplete(request);
 

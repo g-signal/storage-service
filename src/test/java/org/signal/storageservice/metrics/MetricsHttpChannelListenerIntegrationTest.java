@@ -27,6 +27,7 @@ import io.dropwizard.testing.junit5.DropwizardExtensionsSupport;
 import io.micrometer.core.instrument.Counter;
 import io.micrometer.core.instrument.MeterRegistry;
 import io.micrometer.core.instrument.Tag;
+import io.micrometer.core.instrument.Tags;
 import jakarta.annotation.Priority;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.InternalServerErrorException;
@@ -176,15 +177,14 @@ class MetricsHttpChannelListenerIntegrationTest {
 
   @ParameterizedTest
   @MethodSource
-  @SuppressWarnings("unchecked")
   void testSimplePath(String requestPath, String expectedTagPath, String expectedResponse, int expectedStatus)
       throws Exception {
 
     final CountDownLatch countDownLatch = new CountDownLatch(1);
     COUNT_DOWN_LATCH_FUTURE_REFERENCE.set(countDownLatch);
 
-    final ArgumentCaptor<Iterable<Tag>> tagCaptor = ArgumentCaptor.forClass(Iterable.class);
-    when(METER_REGISTRY.counter(anyString(), any(Iterable.class)))
+    final ArgumentCaptor<Tags> tagCaptor = ArgumentCaptor.forClass(Tags.class);
+    when(METER_REGISTRY.counter(anyString(), any(Tags.class)))
         .thenAnswer(invocation -> {
           final String counterName = invocation.getArgument(0);
 
