@@ -5,6 +5,7 @@
 
 package org.signal.storageservice.groups;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.protobuf.ByteString;
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -35,6 +36,9 @@ import org.signal.storageservice.util.CollectionUtil;
 
 public class GroupChangeApplicator {
   private final GroupValidator groupValidator;
+
+  @VisibleForTesting public static final int MAX_LABEL_EMOJI_CIPHERTEXT_LENGTH = 64;
+  @VisibleForTesting public static final int MAX_LABEL_STRING_CIPHERTEXT_LENGTH = 512;
 
   public GroupChangeApplicator(GroupValidator groupValidator) {
     this.groupValidator = groupValidator;
@@ -171,6 +175,51 @@ public class GroupChangeApplicator {
     }
 
     modifiedGroupBuilder.clearMembers().addAllMembers(newMembership);
+  }
+
+  public void applyModifyMemberLabel(GroupUser user, Group.Builder modifiedGroupBuilder, GroupChange.Actions.ModifyMemberLabelAction modifyMemberLabel)
+          throws BadRequestException, ForbiddenException {
+    if (modifyMemberLabel.getUserId().isEmpty()) {
+      throw new BadRequestException("modifying user with no userid");
+    }
+
+    if (modifyMemberLabel.getLabelString().isEmpty() && !modifyMemberLabel.getLabelEmoji().isEmpty()) {
+      throw new BadRequestException("label emoji must be accompanied by a label string");
+    }
+
+    if (modifyMemberLabel.getLabelEmoji().size() > MAX_LABEL_EMOJI_CIPHERTEXT_LENGTH) {
+      throw new BadRequestException("label emoji ciphertext too long");
+    }
+
+    if (modifyMemberLabel.getLabelString().size() > MAX_LABEL_STRING_CIPHERTEXT_LENGTH) {
+      throw new BadRequestException("label string ciphertext too long");
+    }
+
+    // can only modify your own labels
+    if (!user.aciMatches(modifyMemberLabel.getUserId())) {
+      throw new ForbiddenException();
+    }
+
+    // must be in the group to modify your label
+    if (!GroupAuth.isMember(user, modifiedGroupBuilder.build())) {
+      throw new ForbiddenException("modifying user not in group");
+    }
+
+    // changing your labels requires modify-attributes permission
+    if (!GroupAuth.isModifyAttributesAllowed(user, modifiedGroupBuilder.build())) {
+      throw new ForbiddenException("modifying label requires modify-group-attributes permission");
+    }
+
+    for (int i = 0; i < modifiedGroupBuilder.getMembersCount(); i++) {
+      final Member member = modifiedGroupBuilder.getMembers(i);
+      if (user.aciMatches(member.getUserId())) {
+        modifiedGroupBuilder.setMembers(
+            i,
+            member.toBuilder()
+                .setLabelEmoji(modifyMemberLabel.getLabelEmoji())
+                .setLabelString(modifyMemberLabel.getLabelString()));
+      }
+    }
   }
 
   public void applyModifyMemberProfileKeys(GroupUser user, byte[] inviteLinkPassword, Group group, Group.Builder modifiedGroupBuilder, List<GroupChange.Actions.ModifyMemberProfileKeyAction> modifyMembers)
@@ -423,7 +472,7 @@ public class GroupChangeApplicator {
       throw new BadRequestException("invalid avatar url");
     }
 
-    modifiedGroupBuilder.setAvatar(modifyAvatar.getAvatar());
+    modifiedGroupBuilder.setAvatarUrl(modifyAvatar.getAvatar());
   }
 
   public void applyModifyDisappearingMessageTimer(GroupUser user, byte[] inviteLinkPassword, Group group, Group.Builder modifiedGroupBuilder, GroupChange.Actions.ModifyDisappearingMessageTimerAction modifyDisappearingMessageTimer)

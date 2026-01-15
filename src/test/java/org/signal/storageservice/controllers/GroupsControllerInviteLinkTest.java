@@ -86,8 +86,8 @@ class GroupsControllerInviteLinkTest extends BaseGroupsControllerTest {
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getGroupId()).isEqualTo(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize()));
     assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
-    assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearSourceUuid().build()).isEqualTo(groupChange);
+    assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
+    assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearSourceUserId().build()).isEqualTo(groupChange);
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
                                                                    new NotarySignature(signedChange.getServerSignature().toByteArray()));
@@ -238,7 +238,7 @@ class GroupsControllerInviteLinkTest extends BaseGroupsControllerTest {
 
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserThreePresentation.getUuidCiphertext().serialize()));
+    assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserThreePresentation.getUuidCiphertext().serialize()));
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
                                                                    new NotarySignature(signedChange.getServerSignature().toByteArray()));
@@ -482,7 +482,7 @@ class GroupsControllerInviteLinkTest extends BaseGroupsControllerTest {
 
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserThreePresentation.getUuidCiphertext().serialize()));
+    assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserThreePresentation.getUuidCiphertext().serialize()));
     assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getAddMembersList()).hasSize(1).allMatch(GroupChange.Actions.AddMemberAction::getJoinFromInviteLink);
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
@@ -576,7 +576,7 @@ class GroupsControllerInviteLinkTest extends BaseGroupsControllerTest {
 
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
+    assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
                                                                    new NotarySignature(signedChange.getServerSignature().toByteArray()));
@@ -666,7 +666,7 @@ class GroupsControllerInviteLinkTest extends BaseGroupsControllerTest {
 
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserThreePresentation.getUuidCiphertext().serialize()));
+    assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserThreePresentation.getUuidCiphertext().serialize()));
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
                                                                    new NotarySignature(signedChange.getServerSignature().toByteArray()));
@@ -730,7 +730,7 @@ class GroupsControllerInviteLinkTest extends BaseGroupsControllerTest {
 
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
+    assertThat(GroupChange.Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
                                                                    new NotarySignature(signedChange.getServerSignature().toByteArray()));

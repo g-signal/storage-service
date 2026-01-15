@@ -93,6 +93,7 @@ public class GroupsController {
   private static final int ANNOUNCEMENTS_ONLY_CHANGE_EPOCH = 3;
   private static final int BANNED_USERS_CHANGE_EPOCH = 4;
   private static final int JOIN_BY_PNI_EPOCH = 5;
+  private static final int MEMBER_LABEL_EPOCH = 6;
 
   private static final String LOG_SIZE_BYTES_DISTRIBUTION_SUMMARY_NAME = name(GroupsController.class, "logSizeBytes");
   private static final String GROUP_PATCH_BAD_REQUEST_COUNTER_NAME = name(GroupsController.class, "patchBadRequest");
@@ -192,7 +193,7 @@ public class GroupsController {
       groupJoinInfoBuilder.setPublicKey(group.get().getPublicKey());
       groupJoinInfoBuilder.setTitle(group.get().getTitle());
       groupJoinInfoBuilder.setDescription(group.get().getDescription());
-      groupJoinInfoBuilder.setAvatar(group.get().getAvatar());
+      groupJoinInfoBuilder.setAvatar(group.get().getAvatarUrl());
       groupJoinInfoBuilder.setMemberCount(group.get().getMembersCount());
       groupJoinInfoBuilder.setAddFromInviteLink(accessRequired);
       groupJoinInfoBuilder.setVersion(group.get().getVersion());
@@ -414,7 +415,7 @@ public class GroupsController {
       return CompletableFuture.completedFuture(Response.status(Response.Status.FORBIDDEN).build());
     }
 
-    if (!groupValidator.isValidAvatarUrl(group.getAvatar(), user.getGroupId())) {
+    if (!groupValidator.isValidAvatarUrl(group.getAvatarUrl(), user.getGroupId())) {
       sample.stop(createGroupTimer);
       return CompletableFuture.completedFuture(Response.status(Response.Status.BAD_REQUEST).build());
     }
@@ -461,7 +462,7 @@ public class GroupsController {
     final GroupChange initialGroupChange = GroupChange.newBuilder()
                                                       .setActions(Actions.newBuilder()
                                                                          .setVersion(0)
-                                                                         .setSourceUuid(source.get().getUserId())
+                                                                         .setSourceUserId(source.get().getUserId())
                                                                          .build().toByteString())
                                                       .build();
 
@@ -551,6 +552,10 @@ public class GroupsController {
       groupChangeApplicator.applyAddMembers(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getAddMembersList());
       groupChangeApplicator.applyDeleteMembers(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getDeleteMembersList());
       groupChangeApplicator.applyModifyMemberRoles(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getModifyMemberRolesList());
+      if (actions.hasModifyMemberLabel()) {
+        groupChangeApplicator.applyModifyMemberLabel(user, modifiedGroupBuilder, actions.getModifyMemberLabel());
+        changeEpoch = Math.max(changeEpoch, MEMBER_LABEL_EPOCH);
+      }
       groupChangeApplicator.applyModifyMemberProfileKeys(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getModifyMemberProfileKeysList());
 
       groupChangeApplicator.applyAddMembersPendingProfileKey(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getAddMembersPendingProfileKeyList());
@@ -607,7 +612,7 @@ public class GroupsController {
           .selectChangeSource(user, group.get(), modifiedGroupBuilder::build)
           .orElseThrow(ForbiddenException::new);
 
-      actions = actionsBuilder.setSourceUuid(sourceUuid).build();
+      actions = actionsBuilder.setSourceUserId(sourceUuid).build();
 
       final byte[] serializedActions = actions.toByteArray();
       final int version = actions.getVersion();

@@ -90,7 +90,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setPresentation(ByteString.copyFrom(validUserPresentation.serialize()))
@@ -130,7 +130,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar("groups/" + Base64.getUrlEncoder().withoutPadding().encodeToString(groupPublicParams.getGroupIdentifier().serialize()) + "/foo")
+                       .setAvatarUrl("groups/" + Base64.getUrlEncoder().withoutPadding().encodeToString(groupPublicParams.getGroupIdentifier().serialize()) + "/foo")
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setPresentation(ByteString.copyFrom(validUserPresentation.serialize()))
@@ -170,7 +170,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setPresentation(ByteString.copyFrom(presentation.serialize()))
@@ -210,7 +210,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setPresentation(ByteString.copyFrom(presentation.serialize()))
@@ -247,7 +247,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setPresentation(ByteString.copyFrom(validUserPresentation.serialize()))
@@ -284,7 +284,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .build();
 
@@ -315,7 +315,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setPresentation(ByteString.copyFrom(validUserPresentation.serialize()))
@@ -355,7 +355,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(1)
                        .addMembers(Member.newBuilder()
                                          .setPresentation(ByteString.copyFrom(validUserPresentation.serialize()))
@@ -395,7 +395,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setPresentation(ByteString.copyFrom(validUserPresentation.serialize()))
@@ -434,7 +434,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
     Group group = Group.newBuilder()
                        .setPublicKey(ByteString.copyFrom(groupPublicParams.serialize()))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setPresentation(ByteString.copyFrom(validUserPresentation.serialize()))
@@ -473,7 +473,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setPresentation(ByteString.copyFrom(validUserPresentation.serialize()))
@@ -509,7 +509,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -556,7 +556,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
     groupBuilder.setTitle(ByteString.copyFromUtf8("Some title"));
     groupBuilder.setDescription(ByteString.copyFromUtf8("Some description"));
     final String avatar = avatarFor(groupPublicParams.getGroupIdentifier().serialize());
-    groupBuilder.setAvatar(avatar);
+    groupBuilder.setAvatarUrl(avatar);
     groupBuilder.setVersion(0);
     groupBuilder.addMembersBuilder()
                 .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -708,7 +708,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -762,7 +762,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -814,7 +814,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -873,8 +873,8 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(Actions.parseFrom(signedChange.getActions()).getGroupId()).isEqualTo(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize()));
     assertThat(Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
-    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearSourceUuid().build()).isEqualTo(groupChange);
+    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
+    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearSourceUserId().build()).isEqualTo(groupChange);
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
                                                                    new NotarySignature(signedChange.getServerSignature().toByteArray()));
@@ -894,7 +894,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.ADMINISTRATOR))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -944,7 +944,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -1001,7 +1001,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -1053,7 +1053,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
                        .setDescription(ByteString.copyFromUtf8("Some description"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -1113,8 +1113,8 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
     assertThat(signedChange.getChangeEpoch()).isEqualTo(2);
     assertThat(Actions.parseFrom(signedChange.getActions()).getGroupId()).isEqualTo(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize()));
     assertThat(Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
-    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearSourceUuid().build()).isEqualTo(groupChange);
+    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
+    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearSourceUserId().build()).isEqualTo(groupChange);
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
                                                                    new NotarySignature(signedChange.getServerSignature().toByteArray()));
@@ -1134,7 +1134,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
             .setMembers(AccessControl.AccessRequired.MEMBER)
             .setAttributes(AccessControl.AccessRequired.MEMBER))
         .setTitle(ByteString.copyFromUtf8("Some title"))
-        .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+        .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
         .setVersion(0)
         .addMembers(Member.newBuilder()
             .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -1203,8 +1203,8 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
     assertThat(signedChange.getChangeEpoch()).isEqualTo(3);
     assertThat(Actions.parseFrom(signedChange.getActions()).getGroupId()).isEqualTo(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize()));
     assertThat(Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
-    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearSourceUuid().build()).isEqualTo(groupChange);
+    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
+    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearSourceUserId().build()).isEqualTo(groupChange);
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
         new NotarySignature(signedChange.getServerSignature().toByteArray()));
@@ -1226,7 +1226,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(someAvatar)
+                       .setAvatarUrl(someAvatar)
                        .setVersion(1)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -1279,20 +1279,20 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
     verify(groupsManager).appendChangeRecord(eq(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize())), eq(2), changeCaptor.capture(), any(Group.class));
 
     assertThat(captor.getValue().getTitle().toStringUtf8()).isEqualTo("Another title");
-    assertThat(captor.getValue().getAvatar()).isEqualTo(anotherAvatar);
+    assertThat(captor.getValue().getAvatarUrl()).isEqualTo(anotherAvatar);
     assertThat(captor.getValue().getVersion()).isEqualTo(2);
 
     assertThat(captor.getValue().toBuilder()
                      .setTitle(ByteString.copyFromUtf8("Some title"))
-                     .setAvatar(someAvatar)
+                     .setAvatarUrl(someAvatar)
                      .setVersion(1)
                      .build()).isEqualTo(group);
 
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(Actions.parseFrom(signedChange.getActions()).getGroupId()).isEqualTo(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize()));
     assertThat(Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(2);
-    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
-    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearSourceUuid().build()).isEqualTo(groupChange);
+    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
+    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearSourceUserId().build()).isEqualTo(groupChange);
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
                                                                    new NotarySignature(signedChange.getServerSignature().toByteArray()));
@@ -1313,7 +1313,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -1373,8 +1373,8 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(Actions.parseFrom(signedChange.getActions()).getGroupId()).isEqualTo(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize()));
     assertThat(Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
-    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearSourceUuid().build()).isEqualTo(groupChange);
+    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
+    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearSourceUserId().build()).isEqualTo(groupChange);
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
                                                                    new NotarySignature(signedChange.getServerSignature().toByteArray()));
@@ -1395,7 +1395,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.ADMINISTRATOR))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -1444,7 +1444,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -1509,8 +1509,8 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(Actions.parseFrom(signedChange.getActions()).getGroupId()).isEqualTo(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize()));
     assertThat(Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
-    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearSourceUuid().build()).isEqualTo(groupChange);
+    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
+    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearSourceUserId().build()).isEqualTo(groupChange);
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
                                                                    new NotarySignature(signedChange.getServerSignature().toByteArray()));
@@ -1531,7 +1531,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.ADMINISTRATOR))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -1582,7 +1582,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -1642,9 +1642,9 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(Actions.parseFrom(signedChange.getActions()).getGroupId()).isEqualTo(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize()));
     assertThat(Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
+    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
 
-    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearVersion().clearGroupId().clearSourceUuid().build())
+    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearVersion().clearGroupId().clearSourceUserId().build())
         .isEqualTo(Actions.newBuilder().addAddMembers(Actions.AddMemberAction.newBuilder().setAdded(Member.newBuilder().setUserId(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()))
                                                                                                           .setProfileKey(ByteString.copyFrom(validUserTwoPresentation.getProfileKeyCiphertext().serialize()))
                                                                                                           .setRole(Member.Role.DEFAULT)
@@ -1664,7 +1664,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
     groupBuilder.getAccessControlBuilder().setAttributes(AccessControl.AccessRequired.MEMBER);
     groupBuilder.setTitle(ByteString.copyFromUtf8("Some title"));
     final String avatar = avatarFor(groupPublicParams.getGroupIdentifier().serialize());
-    groupBuilder.setAvatar(avatar);
+    groupBuilder.setAvatarUrl(avatar);
     groupBuilder.setVersion(0);
     groupBuilder.addMembersBuilder()
                 .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -1727,7 +1727,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -1790,9 +1790,9 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(Actions.parseFrom(signedChange.getActions()).getGroupId()).isEqualTo(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize()));
     assertThat(Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
+    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
 
-    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearVersion().clearSourceUuid().build())
+    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearVersion().clearSourceUserId().build())
             .isEqualTo(Actions.newBuilder().addAddMembers(Actions.AddMemberAction.newBuilder().setAdded(Member.newBuilder().setUserId(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()))
                                                                                                               .setProfileKey(ByteString.copyFrom(validUserTwoPresentation.getProfileKeyCiphertext().serialize()))
                                                                                                               .setRole(Member.Role.DEFAULT)
@@ -1823,7 +1823,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -1886,9 +1886,9 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(Actions.parseFrom(signedChange.getActions()).getGroupId()).isEqualTo(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize()));
     assertThat(Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
+    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
 
-    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearVersion().clearSourceUuid().build())
+    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearVersion().clearSourceUserId().build())
             .isEqualTo(Actions.newBuilder().addAddMembers(Actions.AddMemberAction.newBuilder().setAdded(Member.newBuilder().setUserId(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()))
                                                                                                               .setProfileKey(ByteString.copyFrom(validUserTwoPresentation.getProfileKeyCiphertext().serialize()))
                                                                                                               .setRole(Member.Role.DEFAULT)
@@ -1914,7 +1914,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.ADMINISTRATOR)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -1961,7 +1961,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -2012,7 +2012,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -2060,7 +2060,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -2092,7 +2092,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
 
     GroupChange.Actions.Builder expectedGroupChangeResponseBuilder = groupChange.toBuilder()
         .setGroupId(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize()))
-        .setSourceUuid(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()));
+        .setSourceUserId(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()));
     expectedGroupChangeResponseBuilder.getModifyMemberProfileKeysBuilder(0)
         .setUserId(ByteString.copyFrom(validUserTwoPresentationUpdate.getUuidCiphertext().serialize()))
         .setProfileKey(ByteString.copyFrom(validUserTwoPresentationUpdate.getProfileKeyCiphertext().serialize()))
@@ -2128,7 +2128,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(Actions.parseFrom(signedChange.getActions()).getGroupId()).isEqualTo(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize()));
     assertThat(Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()));
+    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()));
     assertThat(Actions.parseFrom(signedChange.getActions())).isEqualTo(expectedGroupChangeResponseBuilder.build());
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
@@ -2151,7 +2151,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -2198,7 +2198,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -2266,7 +2266,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
 
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
+    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
                                                                    new NotarySignature(signedChange.getServerSignature().toByteArray()));
@@ -2287,7 +2287,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -2340,7 +2340,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.ADMINISTRATOR)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -2392,7 +2392,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -2453,7 +2453,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
 
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
+    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
                                                                    new NotarySignature(signedChange.getServerSignature().toByteArray()));
@@ -2474,7 +2474,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.ADMINISTRATOR)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -2535,7 +2535,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
 
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()));
+    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()));
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
                                                                    new NotarySignature(signedChange.getServerSignature().toByteArray()));
@@ -2556,7 +2556,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -2616,7 +2616,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.ADMINISTRATOR)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -2690,7 +2690,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
 
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()));
+    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()));
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
                                                                    new NotarySignature(signedChange.getServerSignature().toByteArray()));
@@ -2710,7 +2710,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.ADMINISTRATOR)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -2776,7 +2776,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
             .setMembers(AccessControl.AccessRequired.ADMINISTRATOR)
             .setAttributes(AccessControl.AccessRequired.MEMBER))
         .setTitle(ByteString.copyFromUtf8("Some title"))
-        .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+        .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
         .setVersion(0)
         .addMembers(Member.newBuilder()
             .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -2851,7 +2851,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(signedChange.getChangeEpoch()).isEqualTo(5);
     assertThat(Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(pniCiphertext);
+    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(pniCiphertext);
 
     final List<PromoteMemberPendingPniAciProfileKeyAction> promoteActions =
         Actions.parseFrom(signedChange.getActions()).getPromoteMembersPendingPniAciProfileKeyList();
@@ -2894,7 +2894,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
             .setMembers(AccessControl.AccessRequired.ADMINISTRATOR)
             .setAttributes(AccessControl.AccessRequired.MEMBER))
         .setTitle(ByteString.copyFromUtf8("Some title"))
-        .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+        .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
         .setVersion(0)
         .addMembers(Member.newBuilder()
             .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -2949,7 +2949,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -3008,8 +3008,8 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(Actions.parseFrom(signedChange.getActions()).getGroupId()).isEqualTo(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize()));
     assertThat(Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
-    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearSourceUuid().build()).isEqualTo(groupChange);
+    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
+    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearSourceUserId().build()).isEqualTo(groupChange);
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
                                                                    new NotarySignature(signedChange.getServerSignature().toByteArray()));
@@ -3030,7 +3030,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -3086,7 +3086,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -3148,8 +3148,8 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
     assertThat(Actions.parseFrom(signedChange.getActions()).getGroupId()).isEqualTo(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize()));
     assertThat(Actions.parseFrom(signedChange.getActions()).getVersion()).isEqualTo(1);
-    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
-    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearSourceUuid().build()).isEqualTo(groupChange);
+    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
+    assertThat(Actions.parseFrom(signedChange.getActions()).toBuilder().clearGroupId().clearSourceUserId().build()).isEqualTo(groupChange);
 
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
                                                                    new NotarySignature(signedChange.getServerSignature().toByteArray()));
@@ -3170,7 +3170,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -3227,7 +3227,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(5)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -3291,7 +3291,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                                         .build()
                                                                         .toByteString())
                                                      .build())
-                          .setGroupState(group.toBuilder().setTitle(ByteString.copyFromUtf8("Some title")).setAvatar(firstAvatar).build())
+                          .setGroupState(group.toBuilder().setTitle(ByteString.copyFromUtf8("Some title")).setAvatarUrl(firstAvatar).build())
                           .build());
 
       String secondAvatar = avatarFor(groupPublicParams.getGroupIdentifier().serialize());
@@ -3304,7 +3304,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                                         .build()
                                                                         .toByteString())
                                                      .build())
-                          .setGroupState(group.toBuilder().setTitle(ByteString.copyFromUtf8("Some title")).setAvatar(secondAvatar).build())
+                          .setGroupState(group.toBuilder().setTitle(ByteString.copyFromUtf8("Some title")).setAvatarUrl(secondAvatar).build())
                           .build());
     }};
 
@@ -3340,7 +3340,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
             .setMembers(AccessControl.AccessRequired.MEMBER)
             .setAttributes(AccessControl.AccessRequired.MEMBER))
         .setTitle(ByteString.copyFromUtf8("New Title #10"))
-        .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+        .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
         .setVersion(10)
         .addMembers(Member.newBuilder()
             .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -3396,7 +3396,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
             .setMembers(AccessControl.AccessRequired.MEMBER)
             .setAttributes(AccessControl.AccessRequired.MEMBER))
         .setTitle(ByteString.copyFromUtf8("New Title #10"))
-        .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+        .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
         .setVersion(10)
         .addMembers(Member.newBuilder()
             .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -3453,7 +3453,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("New Title #70"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(70)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -3509,7 +3509,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(5)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -3555,7 +3555,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(5)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -3646,7 +3646,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
             .setMembers(accessRequired)
             .setAttributes(accessRequired))
         .setTitle(ByteString.copyFromUtf8("Some title"))
-        .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+        .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
         .setVersion(7)
         .addMembers(Member.newBuilder()
             .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -3722,7 +3722,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -3769,7 +3769,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -3823,7 +3823,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
             .setMembers(AccessControl.AccessRequired.MEMBER)
             .setAttributes(AccessControl.AccessRequired.MEMBER))
         .setTitle(ByteString.copyFromUtf8("Some Title"))
-        .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+        .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
         .setVersion(1)
         .addMembers(Member.newBuilder()
             .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -3903,9 +3903,9 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
     Actions resultActions = Actions.parseFrom(signedChange.getActions());
     assertThat(Actions.parseFrom(signedChange.getActions()).getGroupId()).as("check change group id").isEqualTo(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize()));
     assertThat(resultActions.getVersion()).as("check change version").isEqualTo(1);
-    assertThat(resultActions.getSourceUuid()).as("check source of the change is correct").isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
-    assertThat(resultActions.toBuilder().clearGroupId().clearSourceUuid().build()).as("check that the actions were modified from the input").isNotEqualTo(actions);
-    assertThat(resultActions.toBuilder().clearGroupId().clearSourceUuid().clearModifyMemberRoles().build()).as("check that the actions were modified by adding modify member roles").isEqualTo(actions);
+    assertThat(resultActions.getSourceUserId()).as("check source of the change is correct").isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
+    assertThat(resultActions.toBuilder().clearGroupId().clearSourceUserId().build()).as("check that the actions were modified from the input").isNotEqualTo(actions);
+    assertThat(resultActions.toBuilder().clearGroupId().clearSourceUserId().clearModifyMemberRoles().build()).as("check that the actions were modified by adding modify member roles").isEqualTo(actions);
     assertThat(resultActions.getModifyMemberRolesCount()).as("check only one modify member role action").isEqualTo(1);
     assertThat(resultActions.getModifyMemberRoles(0).getRole()).as("check setting the remaining member to admin").isEqualTo(Role.ADMINISTRATOR);
     assertThat(resultActions.getModifyMemberRoles(0).getUserId()).as("check user id promoted to admin was the remaining group member").isEqualTo(group.getMembers(1).getUserId());
@@ -3946,7 +3946,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
             .setMembers(AccessControl.AccessRequired.ADMINISTRATOR)
             .setAttributes(AccessControl.AccessRequired.MEMBER))
         .setTitle(ByteString.copyFromUtf8("Some title"))
-        .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+        .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
         .setVersion(0)
         .addMembers(Member.newBuilder()
             .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -4030,7 +4030,7 @@ class GroupsControllerV1Test extends BaseGroupsControllerTest {
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
 
     assertThat(signedChange).isEqualTo(changeCaptor.getValue());
-    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUuid()).isEqualTo(aciCipherText);
+    assertThat(Actions.parseFrom(signedChange.getActions()).getSourceUserId()).isEqualTo(aciCipherText);
     assertThat(Actions.parseFrom(signedChange.getActions()).getPromoteMembersPendingProfileKeyList()).hasSize(1);
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
         new NotarySignature(signedChange.getServerSignature().toByteArray()));

@@ -84,7 +84,7 @@ abstract class BaseGroupsControllerTest {
           .setMembers(AccessControl.AccessRequired.MEMBER)
           .setAttributes(AccessControl.AccessRequired.MEMBER))
       .setTitle(ByteString.copyFromUtf8("Some title"))
-      .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+      .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
       .setVersion(0)
       .addMembers(Member.newBuilder()
           .setUserId(validUserId)
@@ -174,7 +174,7 @@ abstract class BaseGroupsControllerTest {
     GroupChange capturedGroupChange = groupChangeCaptor.getValue();
     AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(capturedGroupChange.getActions().toByteArray(), new NotarySignature(capturedGroupChange.getServerSignature().toByteArray()));
     GroupChange.Actions capturedActions = GroupChange.Actions.parseFrom(capturedGroupChange.getActions());
-    assertThat(capturedActions).isEqualTo(actions.toBuilder().setSourceUuid(modificationUserId).build());
+    assertThat(capturedActions).isEqualTo(actions.toBuilder().setSourceUserId(modificationUserId).build());
     assertThat(capturedGroupChange.getChangeEpoch()).isEqualTo(expectedChangeEpoch);
 
     assertThat(response.getStatus()).isEqualTo(200);
@@ -182,8 +182,8 @@ abstract class BaseGroupsControllerTest {
     assertThat(response.getMediaType().toString()).isEqualTo("application/x-protobuf");
     final GroupChange signedChange = GroupChange.parseFrom(response.readEntity(InputStream.class));
     final GroupChange.Actions signedActions = GroupChange.Actions.parseFrom(signedChange.getActions());
-    assertThat(signedActions.toBuilder().clearSourceUuid().build()).isEqualTo(actions);
-    assertThat(signedActions.getSourceUuid()).isEqualTo(modificationUserId);
+    assertThat(signedActions.toBuilder().clearSourceUserId().build()).isEqualTo(actions);
+    assertThat(signedActions.getSourceUserId()).isEqualTo(modificationUserId);
     assertThat(signedChange.getChangeEpoch()).isEqualTo(expectedChangeEpoch);
     assertThat(signedChange.getServerSignature()).isEqualTo(capturedGroupChange.getServerSignature());
   }
