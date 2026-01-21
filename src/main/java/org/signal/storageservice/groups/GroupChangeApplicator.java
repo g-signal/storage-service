@@ -16,6 +16,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.ForbiddenException;
@@ -26,6 +27,7 @@ import org.signal.storageservice.storage.protos.groups.GroupChange;
 import org.signal.storageservice.storage.protos.groups.GroupChange.Actions;
 import org.signal.storageservice.storage.protos.groups.GroupChange.Actions.AddMemberBannedAction;
 import org.signal.storageservice.storage.protos.groups.GroupChange.Actions.DeleteMemberBannedAction;
+import org.signal.storageservice.storage.protos.groups.GroupChange.Actions.ModifyMemberLabelAction;
 import org.signal.storageservice.storage.protos.groups.GroupChange.Actions.PromoteMemberPendingPniAciProfileKeyAction;
 import org.signal.storageservice.storage.protos.groups.Member;
 import org.signal.storageservice.storage.protos.groups.Member.Role;
@@ -177,48 +179,53 @@ public class GroupChangeApplicator {
     modifiedGroupBuilder.clearMembers().addAllMembers(newMembership);
   }
 
-  public void applyModifyMemberLabel(GroupUser user, Group.Builder modifiedGroupBuilder, GroupChange.Actions.ModifyMemberLabelAction modifyMemberLabel)
+  public void applyModifyMemberLabel(GroupUser user, Group.Builder modifiedGroupBuilder, List<ModifyMemberLabelAction> modifyMemberLabels)
           throws BadRequestException, ForbiddenException {
-    if (modifyMemberLabel.getUserId().isEmpty()) {
-      throw new BadRequestException("modifying user with no userid");
-    }
+    final Group group = modifiedGroupBuilder.build();
 
-    if (modifyMemberLabel.getLabelString().isEmpty() && !modifyMemberLabel.getLabelEmoji().isEmpty()) {
-      throw new BadRequestException("label emoji must be accompanied by a label string");
-    }
+    final boolean isAdmin = GroupAuth.getMember(user, group)
+        .orElseThrow(() -> new ForbiddenException())
+        .getRole() == Member.Role.ADMINISTRATOR;
 
-    if (modifyMemberLabel.getLabelEmoji().size() > MAX_LABEL_EMOJI_CIPHERTEXT_LENGTH) {
-      throw new BadRequestException("label emoji ciphertext too long");
-    }
-
-    if (modifyMemberLabel.getLabelString().size() > MAX_LABEL_STRING_CIPHERTEXT_LENGTH) {
-      throw new BadRequestException("label string ciphertext too long");
-    }
-
-    // can only modify your own labels
-    if (!user.aciMatches(modifyMemberLabel.getUserId())) {
-      throw new ForbiddenException();
-    }
-
-    // must be in the group to modify your label
-    if (!GroupAuth.isMember(user, modifiedGroupBuilder.build())) {
-      throw new ForbiddenException("modifying user not in group");
-    }
-
-    // changing your labels requires modify-attributes permission
-    if (!GroupAuth.isModifyAttributesAllowed(user, modifiedGroupBuilder.build())) {
+    // changing labels requires modify-attributes permission
+    if (!GroupAuth.isModifyAttributesAllowed(user, group)) {
       throw new ForbiddenException("modifying label requires modify-group-attributes permission");
     }
 
-    for (int i = 0; i < modifiedGroupBuilder.getMembersCount(); i++) {
-      final Member member = modifiedGroupBuilder.getMembers(i);
-      if (user.aciMatches(member.getUserId())) {
-        modifiedGroupBuilder.setMembers(
-            i,
-            member.toBuilder()
-                .setLabelEmoji(modifyMemberLabel.getLabelEmoji())
-                .setLabelString(modifyMemberLabel.getLabelString()));
+    final Map<ByteString, Member.Builder> memberBuilders = modifiedGroupBuilder.getMembersBuilderList().stream()
+        .collect(Collectors.toMap(Member.Builder::getUserId, Function.identity()));
+
+    for (ModifyMemberLabelAction modifyMemberLabel : modifyMemberLabels) {
+      if (modifyMemberLabel.getUserId().isEmpty()) {
+        throw new BadRequestException("modifying user with no userid");
       }
+
+      if (modifyMemberLabel.getLabelString().isEmpty() && !modifyMemberLabel.getLabelEmoji().isEmpty()) {
+        throw new BadRequestException("label emoji must be accompanied by a label string");
+      }
+
+      if (modifyMemberLabel.getLabelEmoji().size() > MAX_LABEL_EMOJI_CIPHERTEXT_LENGTH) {
+        throw new BadRequestException("label emoji ciphertext too long");
+      }
+
+      if (modifyMemberLabel.getLabelString().size() > MAX_LABEL_STRING_CIPHERTEXT_LENGTH) {
+        throw new BadRequestException("label string ciphertext too long");
+      }
+
+      // can only modify your own labels unless you are an administrator, in which case you can clear others'
+      if (!user.aciMatches(modifyMemberLabel.getUserId()) &&
+          !(isAdmin && modifyMemberLabel.getLabelEmoji().isEmpty() && modifyMemberLabel.getLabelString().isEmpty())) {
+        throw new ForbiddenException("can only set your own label, or clear other users' as admin");
+      }
+
+      // can only modify labels of users in group
+      if (!memberBuilders.containsKey(modifyMemberLabel.getUserId())) {
+        throw new ForbiddenException("modifying user not in group");
+      }
+
+      memberBuilders.get(modifyMemberLabel.getUserId())
+          .setLabelEmoji(modifyMemberLabel.getLabelEmoji())
+          .setLabelString(modifyMemberLabel.getLabelString());
     }
   }
 

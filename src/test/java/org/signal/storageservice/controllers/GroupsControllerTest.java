@@ -3599,7 +3599,7 @@ class GroupsControllerTest extends BaseGroupsControllerTest {
 
     GroupChange.Actions groupChange = GroupChange.Actions.newBuilder()
         .setVersion(1)
-        .setModifyMemberLabel(
+        .addModifyMemberLabel(
             Actions.ModifyMemberLabelAction.newBuilder()
                 .setUserId(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()))
                 .setLabelEmoji(ByteString.copyFromUtf8("emoji ciphertext"))
@@ -3704,7 +3704,7 @@ class GroupsControllerTest extends BaseGroupsControllerTest {
 
     GroupChange.Actions groupChange = GroupChange.Actions.newBuilder()
         .setVersion(1)
-        .setModifyMemberLabel(
+        .addModifyMemberLabel(
             Actions.ModifyMemberLabelAction.newBuilder()
                 .setUserId(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()))
                 .setLabelString(ByteString.copyFromUtf8("label ciphertext")))
@@ -3811,7 +3811,7 @@ class GroupsControllerTest extends BaseGroupsControllerTest {
 
     GroupChange.Actions groupChange = GroupChange.Actions.newBuilder()
         .setVersion(1)
-        .setModifyMemberLabel(
+        .addModifyMemberLabel(
             Actions.ModifyMemberLabelAction.newBuilder()
                 .setUserId(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize())))
         .build();
@@ -3903,7 +3903,7 @@ class GroupsControllerTest extends BaseGroupsControllerTest {
 
     GroupChange.Actions groupChange = GroupChange.Actions.newBuilder()
         .setVersion(1)
-        .setModifyMemberLabel(
+        .addModifyMemberLabel(
             Actions.ModifyMemberLabelAction.newBuilder()
                 .setUserId(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()))
                 .setLabelEmoji(ByteString.copyFromUtf8("emoji ciphertext"))
@@ -3961,7 +3961,7 @@ class GroupsControllerTest extends BaseGroupsControllerTest {
 
     GroupChange.Actions groupChange = GroupChange.Actions.newBuilder()
         .setVersion(1)
-        .setModifyMemberLabel(
+        .addModifyMemberLabel(
             Actions.ModifyMemberLabelAction.newBuilder()
                 .setUserId(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()))
                 .setLabelEmoji(ByteString.copyFromUtf8("emoji ciphertext"))
@@ -3978,6 +3978,123 @@ class GroupsControllerTest extends BaseGroupsControllerTest {
 
     verify(groupsManager).getGroup(eq(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize())));
     verifyNoMoreInteractions(groupsManager);
+  }
+
+  @Test
+  void testModifyMemberLabelAdminClearOtherMember() throws Exception {
+    GroupSecretParams groupSecretParams = GroupSecretParams.generate();
+    GroupPublicParams groupPublicParams = groupSecretParams.getPublicParams();
+
+    ProfileKeyCredentialPresentation validUserPresentation =
+      new ClientZkProfileOperations(AuthHelper.GROUPS_SERVER_KEY.getPublicParams())
+          .createProfileKeyCredentialPresentation(
+            groupSecretParams, AuthHelper.VALID_USER_PROFILE_CREDENTIAL);
+
+    ProfileKeyCredentialPresentation validUserTwoPresentation =
+      new ClientZkProfileOperations(AuthHelper.GROUPS_SERVER_KEY.getPublicParams())
+          .createProfileKeyCredentialPresentation(groupSecretParams, AuthHelper.VALID_USER_TWO_PROFILE_CREDENTIAL);
+
+    Group group = Group.newBuilder()
+        .setPublicKey(ByteString.copyFrom(groupPublicParams.serialize()))
+        .setAccessControl(AccessControl.newBuilder()
+            .setMembers(AccessControl.AccessRequired.MEMBER)
+            .setAttributes(AccessControl.AccessRequired.ADMINISTRATOR))
+        .setTitle(ByteString.copyFromUtf8("Some title"))
+        .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+        .setVersion(0)
+        .addMembers(Member.newBuilder()
+            .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
+            .setProfileKey(ByteString.copyFrom(validUserTwoPresentation.getProfileKeyCiphertext().serialize()))
+            .setRole(Member.Role.ADMINISTRATOR)
+            .build())
+        .addMembers(Member.newBuilder()
+            .setUserId(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize()))
+            .setProfileKey(ByteString.copyFrom(validUserTwoPresentation.getProfileKeyCiphertext().serialize()))
+            .setRole(Member.Role.DEFAULT)
+            .setLabelEmoji(ByteString.copyFromUtf8("emoji ciphertext"))
+            .setLabelString(ByteString.copyFromUtf8("label ciphertext"))
+            .build())
+        .addMembers(Member.newBuilder()
+            .setUserId(ByteString.copyFrom(validUserThreePresentation.getUuidCiphertext().serialize()))
+            .setProfileKey(ByteString.copyFrom(validUserThreePresentation.getProfileKeyCiphertext().serialize()))
+            .setRole(Member.Role.DEFAULT)
+            .setLabelEmoji(ByteString.copyFromUtf8("emoji ciphertext"))
+            .setLabelString(ByteString.copyFromUtf8("label ciphertext"))
+            .build())
+        .build();
+
+    when(groupsManager.getGroup(eq(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize()))))
+        .thenReturn(CompletableFuture.completedFuture(Optional.of(group)));
+
+    when(groupsManager.updateGroup(eq(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize())), any(Group.class)))
+        .thenReturn(CompletableFuture.completedFuture(Optional.empty()));
+
+    when(
+        groupsManager.appendChangeRecord(
+            eq(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize())),
+            eq(1),
+            any(GroupChange.class),
+            any(Group.class)))
+        .thenReturn(CompletableFuture.completedFuture(true));
+
+    GroupChange.Actions groupChange = GroupChange.Actions.newBuilder()
+        .setVersion(1)
+        .addModifyMemberLabel(
+            Actions.ModifyMemberLabelAction.newBuilder()
+                .setUserId(ByteString.copyFrom(validUserTwoPresentation.getUuidCiphertext().serialize())))
+        .addModifyMemberLabel(
+            Actions.ModifyMemberLabelAction.newBuilder()
+                .setUserId(ByteString.copyFrom(validUserThreePresentation.getUuidCiphertext().serialize())))
+        .build();
+
+    Response response = resources.getJerseyTest()
+        .target("/v2/groups/")
+        .request(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
+        .header("Authorization", AuthHelper.getAuthHeader(groupSecretParams, AuthHelper.VALID_USER_AUTH_CREDENTIAL))
+        .method("PATCH", Entity.entity(groupChange.toByteArray(), ProtocolBufferMediaType.APPLICATION_PROTOBUF));
+
+    assertThat(response.getStatus()).isEqualTo(200);
+    assertThat(response.hasEntity()).isTrue();
+    assertThat(response.getMediaType().toString()).isEqualTo("application/x-protobuf");
+
+    final GroupChangeResponse responseProto = GroupChangeResponse.parseFrom(response.readEntity(InputStream.class).readAllBytes());
+    final GroupChange signedChange = responseProto.getGroupChange();
+
+    ArgumentCaptor<Group> captor = ArgumentCaptor.forClass(Group.class);
+    ArgumentCaptor<GroupChange> changeCaptor = ArgumentCaptor.forClass(GroupChange.class);
+
+    verify(groupsManager).updateGroup(eq(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize())), captor.capture());
+    verify(groupsManager).appendChangeRecord(eq(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize())), eq(1), changeCaptor.capture(), any(Group.class));
+
+    assertThat(captor.getValue().getMembers(1).getLabelEmoji()).isEmpty();
+    assertThat(captor.getValue().getMembers(1).getLabelString()).isEmpty();
+    assertThat(captor.getValue().getVersion()).isEqualTo(1);
+
+    assertThat(
+        captor.getValue().toBuilder()
+            .clearMembers()
+            .addMembers(captor.getValue().getMembers(0))
+            .addMembers(
+                captor.getValue().getMembers(1).toBuilder()
+                    .setLabelEmoji(ByteString.copyFromUtf8("emoji ciphertext"))
+                    .setLabelString(ByteString.copyFromUtf8("label ciphertext")))
+            .addMembers(
+                captor.getValue().getMembers(2).toBuilder()
+                    .setLabelEmoji(ByteString.copyFromUtf8("emoji ciphertext"))
+                    .setLabelString(ByteString.copyFromUtf8("label ciphertext")))
+            .setVersion(0)
+            .build())
+        .isEqualTo(group);
+
+    assertThat(signedChange).isEqualTo(changeCaptor.getValue());
+    final Actions actions = Actions.parseFrom(signedChange.getActions());
+    assertThat(actions.getGroupId()).isEqualTo(ByteString.copyFrom(groupPublicParams.getGroupIdentifier().serialize()));
+    assertThat(actions.getVersion()).isEqualTo(1);
+    assertThat(actions.getSourceUserId()).isEqualTo(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()));
+    assertThat(actions.toBuilder().clearGroupId().clearSourceUserId().build()).isEqualTo(groupChange);
+
+    AuthHelper.GROUPS_SERVER_KEY.getPublicParams().verifySignature(signedChange.getActions().toByteArray(),
+      new NotarySignature(signedChange.getServerSignature().toByteArray()));
   }
 
   @Test
@@ -4019,7 +4136,7 @@ class GroupsControllerTest extends BaseGroupsControllerTest {
 
     GroupChange.Actions groupChange = GroupChange.Actions.newBuilder()
         .setVersion(1)
-        .setModifyMemberLabel(
+        .addModifyMemberLabel(
             Actions.ModifyMemberLabelAction.newBuilder()
                 .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
                 .setLabelEmoji(ByteString.copyFromUtf8("emoji ciphertext")))
@@ -4076,7 +4193,7 @@ class GroupsControllerTest extends BaseGroupsControllerTest {
 
     GroupChange.Actions groupChange = GroupChange.Actions.newBuilder()
         .setVersion(1)
-        .setModifyMemberLabel(
+        .addModifyMemberLabel(
             Actions.ModifyMemberLabelAction.newBuilder()
                 .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
                 .setLabelEmoji(ByteString.copyFrom(new byte[GroupChangeApplicator.MAX_LABEL_EMOJI_CIPHERTEXT_LENGTH + 1]))
@@ -4134,7 +4251,7 @@ class GroupsControllerTest extends BaseGroupsControllerTest {
 
     GroupChange.Actions groupChange = GroupChange.Actions.newBuilder()
         .setVersion(1)
-        .setModifyMemberLabel(
+        .addModifyMemberLabel(
             Actions.ModifyMemberLabelAction.newBuilder()
                 .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
                 .setLabelEmoji(ByteString.copyFromUtf8("emoji ciphertext"))

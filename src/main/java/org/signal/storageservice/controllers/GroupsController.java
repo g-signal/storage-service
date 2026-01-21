@@ -552,8 +552,8 @@ public class GroupsController {
       groupChangeApplicator.applyAddMembers(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getAddMembersList());
       groupChangeApplicator.applyDeleteMembers(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getDeleteMembersList());
       groupChangeApplicator.applyModifyMemberRoles(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getModifyMemberRolesList());
-      if (actions.hasModifyMemberLabel()) {
-        groupChangeApplicator.applyModifyMemberLabel(user, modifiedGroupBuilder, actions.getModifyMemberLabel());
+      if (actions.getModifyMemberLabelCount() > 0) {
+        groupChangeApplicator.applyModifyMemberLabel(user, modifiedGroupBuilder, actions.getModifyMemberLabelList());
         changeEpoch = Math.max(changeEpoch, MEMBER_LABEL_EPOCH);
       }
       groupChangeApplicator.applyModifyMemberProfileKeys(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getModifyMemberProfileKeysList());

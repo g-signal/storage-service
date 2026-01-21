@@ -244,7 +244,7 @@ message GroupChange {
     repeated AddMemberAction addMembers = 3;
     repeated DeleteMemberAction deleteMembers = 4;
     repeated ModifyMemberRoleAction modifyMemberRoles = 5;
-    ModifyMemberLabelAction modifyMemberLabel = 26; // change epoch = 6;
+    repeated ModifyMemberLabelAction modifyMemberLabel = 26; // change epoch = 6;
     repeated ModifyMemberProfileKeyAction modifyMemberProfileKeys = 6;
     repeated AddMemberPendingProfileKeyAction addMembersPendingProfileKey = 7;
     repeated DeleteMemberPendingProfileKeyAction deleteMembersPendingProfileKey = 8;
