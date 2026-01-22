@@ -57,6 +57,7 @@ public class StorageService extends Application<StorageServiceConfiguration> {
   @Override
   public void run(StorageServiceConfiguration config, Environment environment) throws Exception {
     MetricsUtil.configureRegistries(config, environment);
+    MetricsUtil.configureLogging(config, environment);
 
     UncaughtExceptionHandler.register();
 
