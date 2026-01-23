@@ -102,11 +102,8 @@ public class MetricsUtil {
       return;
     }
 
-    final Map<String, String> env = System.getenv();
     final String endpoint =
-      Optional.ofNullable(env.get("OTEL_EXPORTER_OTLP_LOGS_ENDPOINT"))
-        .or(() -> Optional.ofNullable(env.get("OTEL_EXPORTER_OTLP_ENDPOINT")))
-        .map(u -> u.endsWith("/v1/logs") ? u : u + "/v1/logs")
+      Optional.ofNullable(config.getOpenTelemetryConfiguration().logUrl())
         .orElse("http://localhost:4318/v1/logs");
 
     final ResourceBuilder resource = Resource.builder();
@@ -120,7 +117,8 @@ public class MetricsUtil {
             .addLogRecordProcessor(
               BatchLogRecordProcessor.builder(
                 OtlpHttpLogRecordExporter.builder()
-                  .setEndpoint(endpoint)
+                    .setEndpoint(endpoint)
+                    .setHeaders(config.getOpenTelemetryConfiguration()::headers)
                   .build()).build())
             .build())
         .build();

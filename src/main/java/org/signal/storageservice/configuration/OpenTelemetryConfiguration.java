@@ -19,6 +19,7 @@ public record OpenTelemetryConfiguration(
   @JsonProperty boolean enabled,
   @JsonProperty String environment,
   @JsonProperty int maxBucketCount,
+  @JsonProperty String logUrl,
   @JsonProperty Map<String, Integer> maxBucketsPerMeter,
   @JsonAnyGetter @JsonAnySetter Map<String, String> otlpConfig
 ) implements OtlpConfig {
