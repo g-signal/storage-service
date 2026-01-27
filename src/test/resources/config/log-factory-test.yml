@@ -1,8 +1,4 @@
 logging:
   level: INFO
   appenders:
-    - type: logstashtcpsocket
-      destination: 127.0.0.1:0
-      keepAlive: PT20S
-      apiKey: not-applicable
-      environment: integration-test
+    - type: otlp

@@ -16,7 +16,6 @@ import io.micrometer.core.instrument.binder.system.FileDescriptorMetrics;
 import io.micrometer.core.instrument.binder.system.ProcessorMetrics;
 import io.micrometer.core.instrument.config.MeterFilter;
 import io.micrometer.core.instrument.distribution.DistributionStatisticConfig;
-import io.micrometer.datadog.DatadogMeterRegistry;
 import io.micrometer.registry.otlp.OtlpMeterRegistry;
 import io.opentelemetry.exporter.otlp.http.logs.OtlpHttpLogRecordExporter;
 import io.opentelemetry.instrumentation.logback.appender.v1_0.OpenTelemetryAppender;
@@ -62,19 +61,6 @@ public class MetricsUtil {
 
     registeredMetrics = true;
 
-    if (config.getDatadogConfiguration().enabled()) {
-      final DatadogMeterRegistry datadogMeterRegistry = new DatadogMeterRegistry(
-              config.getDatadogConfiguration(), Clock.SYSTEM);
-
-      datadogMeterRegistry.config().commonTags(
-              Tags.of(
-                      "service", "storage",
-                      "host", HostSupplier.getHost(),
-                      "version", StorageServiceVersion.getServiceVersion(),
-                      "env", config.getDatadogConfiguration().getEnvironment()));
-
-      Metrics.addRegistry(datadogMeterRegistry);
-    }
     if (config.getOpenTelemetryConfiguration().enabled()) {
       final OtlpMeterRegistry otlpMeterRegistry = new OtlpMeterRegistry(config.getOpenTelemetryConfiguration(), Clock.SYSTEM);
       Metrics.addRegistry(otlpMeterRegistry);

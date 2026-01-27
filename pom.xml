@@ -36,14 +36,12 @@
 
         <dropwizard.version>4.0.16</dropwizard.version>
 
-        <dropwizard-metrics-datadog.version>2.0.0-RC2</dropwizard-metrics-datadog.version>
         <google-cloud-libraries.version>26.73.0</google-cloud-libraries.version>
         <jackson-bom.version>2.20.1</jackson-bom.version>
         <kotlin.version>2.2.21</kotlin.version>
         <libsignal-server.version>0.86.6</libsignal-server.version>
         <logback.version>1.5.24</logback.version>
         <logback-access.version>2.0.8</logback-access.version>
-        <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version>
         <micrometer-bom.version>1.16.2</micrometer-bom.version>
         <protobuf.version>4.29.4</protobuf.version> <!-- must be less than or equal to the value from Google libraries-bom, see https://protobuf.dev/support/cross-version-runtime-guarantee/ -->
         <semver4j.version>3.1.0</semver4j.version>
@@ -159,23 +157,6 @@
             <version>${libsignal-server.version}</version>
         </dependency>
         <dependency>
-            <groupId>net.logstash.logback</groupId>
-            <artifactId>logstash-logback-encoder</artifactId>
-            <version>${logstash-logback-encoder.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.coursera</groupId>
-            <artifactId>dropwizard-metrics-datadog</artifactId>
-            <version>${dropwizard-metrics-datadog.version}</version>
-            <exclusions>
-                <exclusion>
-                    <!--Conflicts with version in com.google.cloud:google-cloud-bigtable:jar:2.35.1 -->
-                    <groupId>org.apache.httpcomponents</groupId>
-                    <artifactId>httpclient</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>com.vdurmont</groupId>
             <artifactId>semver4j</artifactId>
             <version>${semver4j.version}</version>
@@ -184,10 +165,6 @@
         <dependency>
             <groupId>io.micrometer</groupId>
             <artifactId>micrometer-core</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-datadog</artifactId>
         </dependency>
         <dependency>
           <groupId>io.micrometer</groupId>
