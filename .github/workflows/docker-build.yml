@@ -29,9 +29,14 @@ jobs:
         run: |
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
 
+      - name: Create config directory and properties
+        run: |
+          mkdir -p config
+          echo "docker.repo=${{ secrets.DOCKERHUB_USERNAME }}/storage-service" > config/staging-build.properties
+
       - name: Build and push with Jib
         run: |
           ./mvnw -e -B clean package jib:build \
-            -Ddocker.repo=${{ secrets.DOCKERHUB_USERNAME }}/storage-service \
+            -Pdocker-deploy \
             -Denv=staging \
             -DskipTests
