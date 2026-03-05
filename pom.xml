@@ -8,6 +8,25 @@
     <artifactId>StorageService</artifactId>
     <version>JGITVER</version>
 
+    <repositories>
+        <repository>
+            <id>central</id>
+            <name>Central Repository</name>
+            <url>https://repo.maven.apache.org/maven2</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>signal-build-artifacts</id>
+            <name>Signal Build Artifacts</name>
+            <url>https://build-artifacts.signal.org/libraries/maven</url>
+            <snapshots>
+                <enabled>false</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <configuration.path>config</configuration.path>
@@ -15,24 +34,22 @@
         <!-- eclipse-temurin:21.0.6_7-jre-jammy -->
         <docker.image.sha256>02fc89fa8766a9ba221e69225f8d1c10bb91885ddbd3c112448e23488ba40ab6</docker.image.sha256>
 
-        <dropwizard.version>4.0.13</dropwizard.version>
+        <dropwizard.version>4.0.16</dropwizard.version>
 
-        <dropwizard-metrics-datadog.version>2.0.0-RC2</dropwizard-metrics-datadog.version>
-        <google-cloud-libraries.version>26.59.0</google-cloud-libraries.version>
-        <jackson-bom.version>2.18.3</jackson-bom.version>
-        <libsignal-server.version>0.69.0</libsignal-server.version>
-        <!-- Logback 1.5.14+ has a null pointer bug: https://github.com/qos-ch/logback/issues/929. -->
-        <logback.version>1.5.13</logback.version>
-        <logback-access.version>2.0.6</logback-access.version>
-        <logstash-logback-encoder.version>8.1</logstash-logback-encoder.version>
-        <micrometer-bom.version>1.14.5</micrometer-bom.version>
+        <google-cloud-libraries.version>26.73.0</google-cloud-libraries.version>
+        <jackson-bom.version>2.20.1</jackson-bom.version>
+        <kotlin.version>2.2.21</kotlin.version>
+        <libsignal-server.version>0.86.6</libsignal-server.version>
+        <logback.version>1.5.24</logback.version>
+        <logback-access.version>2.0.8</logback-access.version>
+        <micrometer-bom.version>1.16.2</micrometer-bom.version>
         <protobuf.version>4.29.4</protobuf.version> <!-- must be less than or equal to the value from Google libraries-bom, see https://protobuf.dev/support/cross-version-runtime-guarantee/ -->
         <semver4j.version>3.1.0</semver4j.version>
-        <snakeyaml.version>2.4</snakeyaml.version>
+        <snakeyaml.version>2.5</snakeyaml.version>
         <syslog4j.version>0.9.30</syslog4j.version>
 
         <!-- test -->
-        <assertj-core.version>3.27.3</assertj-core.version>
+        <assertj-core.version>3.27.6</assertj-core.version>
     </properties>
 
     <dependencyManagement>
@@ -68,6 +85,20 @@
             </dependency>
 
             <dependency>
+                <groupId>io.opentelemetry</groupId>
+                <artifactId>opentelemetry-bom</artifactId>
+                <version>1.58.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
+                <groupId>io.opentelemetry.instrumentation</groupId>
+                <artifactId>opentelemetry-instrumentation-bom</artifactId>
+                <version>2.24.0</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+            <dependency>
                 <groupId>ch.qos.logback</groupId>
                 <artifactId>logback-core</artifactId>
                 <version>${logback.version}</version>
@@ -86,6 +117,14 @@
                 <groupId>org.yaml</groupId>
                 <artifactId>snakeyaml</artifactId>
                 <version>${snakeyaml.version}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.jetbrains.kotlin</groupId>
+                <artifactId>kotlin-bom</artifactId>
+                <version>${kotlin.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
             </dependency>
         </dependencies>
     </dependencyManagement>
@@ -118,23 +157,6 @@
             <version>${libsignal-server.version}</version>
         </dependency>
         <dependency>
-            <groupId>net.logstash.logback</groupId>
-            <artifactId>logstash-logback-encoder</artifactId>
-            <version>${logstash-logback-encoder.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.coursera</groupId>
-            <artifactId>dropwizard-metrics-datadog</artifactId>
-            <version>${dropwizard-metrics-datadog.version}</version>
-            <exclusions>
-                <exclusion>
-                    <!--Conflicts with version in com.google.cloud:google-cloud-bigtable:jar:2.35.1 -->
-                    <groupId>org.apache.httpcomponents</groupId>
-                    <artifactId>httpclient</artifactId>
-                </exclusion>
-            </exclusions>
-        </dependency>
-        <dependency>
             <groupId>com.vdurmont</groupId>
             <artifactId>semver4j</artifactId>
             <version>${semver4j.version}</version>
@@ -145,8 +167,8 @@
             <artifactId>micrometer-core</artifactId>
         </dependency>
         <dependency>
-            <groupId>io.micrometer</groupId>
-            <artifactId>micrometer-registry-datadog</artifactId>
+          <groupId>io.micrometer</groupId>
+          <artifactId>micrometer-registry-otlp</artifactId>
         </dependency>
         <dependency>
             <groupId>com.google.protobuf</groupId>
@@ -161,6 +183,28 @@
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-bigtable-emulator</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <dependency>
+          <groupId>io.opentelemetry</groupId>
+          <artifactId>opentelemetry-sdk</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>io.opentelemetry</groupId>
+          <artifactId>opentelemetry-exporter-otlp</artifactId>
+        </dependency>
+        <dependency>
+          <groupId>io.opentelemetry.instrumentation</groupId>
+          <artifactId>opentelemetry-logback-appender-1.0</artifactId>
+          <!-- *all* opentelemetry-logback-appender versions are "alpha" despite the advanced version number -->
+          <version>2.24.0-alpha</version>
+          <exclusions>
+            <!-- incubator packages aren't included in the opentelemetry BOM, and we don't use them -->
+            <exclusion>
+              <groupId>io.opentelemetry.instrumentation</groupId>
+              <artifactId>opentelemetry-instrumentation-api-incubator</artifactId>
+            </exclusion>
+          </exclusions>
         </dependency>
 
         <!-- test -->
@@ -187,7 +231,7 @@
             <extension>
                 <groupId>kr.motd.maven</groupId>
                 <artifactId>os-maven-plugin</artifactId>
-                <version>1.6.1</version>
+                <version>1.7.1</version>
             </extension>
         </extensions>
 
@@ -195,7 +239,24 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>versions-maven-plugin</artifactId>
-                <version>2.18.0</version>
+                <version>2.20.1</version>
+                <configuration>
+                  <ruleSet>
+                    <!-- ignore non-stable releases -->
+                    <ignoreVersions>
+                      <ignoreVersion>
+                        <type>regex</type>
+                        <version>.*-(alpha|beta|M|rc|RC)-?[0-9]*</version>
+                      </ignoreVersion>
+                      <ignoreVersion>
+                        <type>regex</type>
+                        <version>.*MR</version>
+                      </ignoreVersion>
+                    </ignoreVersions>
+                  </ruleSet>
+                  <!-- ignore newer versions of a subdependency of a BOM we're importing; we use the newest BOM and stick with it -->
+                  <processDependencyManagementTransitive>false</processDependencyManagementTransitive>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -213,12 +274,12 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-clean-plugin</artifactId>
-                <version>3.4.0</version>
+                <version>3.5.0</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.3.1</version>
+                <version>3.4.0</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -228,7 +289,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.13.0</version>
+                <version>3.14.1</version>
                 <configuration>
                     <source>21</source>
                     <target>21</target>
@@ -237,7 +298,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.8.1</version>
+                <version>3.9.0</version>
                 <executions>
                     <execution>
                         <phase>initialize</phase>
@@ -266,7 +327,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-deploy-plugin</artifactId>
-                <version>3.1.3</version>
+                <version>3.1.4</version>
                 <configuration>
                     <skip>true</skip>
                 </configuration>
@@ -274,7 +335,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-install-plugin</artifactId>
-                <version>3.1.3</version>
+                <version>3.1.4</version>
                 <configuration>
                     <skip>true</skip>
                 </configuration>
@@ -282,7 +343,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.2</version>
+                <version>3.5.4</version>
                 <configuration>
                     <argLine>-javaagent:${org.mockito:mockito-core:jar}</argLine>
                 </configuration>
@@ -308,7 +369,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>3.5.0</version>
+                <version>3.6.2</version>
                 <executions>
                     <execution>
                         <goals>
@@ -360,7 +421,7 @@
                     <plugin>
                         <groupId>com.google.cloud.tools</groupId>
                         <artifactId>jib-maven-plugin</artifactId>
-                        <version>3.4.4</version>
+                        <version>3.5.1</version>
                         <executions>
                             <execution>
                                 <phase>package</phase>

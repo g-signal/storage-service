@@ -5,7 +5,6 @@
 
 package org.signal.storageservice.controllers;
 
-import com.codahale.metrics.annotation.Timed;
 import io.dropwizard.auth.Auth;
 import java.time.Clock;
 import java.time.Instant;
@@ -52,7 +51,6 @@ public class GroupsV1Controller extends GroupsController {
   }
 
   @Override
-  @Timed
   @GET
   @Produces(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
   public CompletableFuture<Response> getGroup(@Auth GroupUser user) {
@@ -66,7 +64,6 @@ public class GroupsV1Controller extends GroupsController {
   }
 
   @Override
-  @Timed
   @GET
   @Produces(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
   @Path("/logs/{fromVersion}")
@@ -89,7 +86,6 @@ public class GroupsV1Controller extends GroupsController {
   }
 
   @Override
-  @Timed
   @PUT
   @Produces(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
   @Consumes(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
@@ -99,15 +95,15 @@ public class GroupsV1Controller extends GroupsController {
   }
 
   @Override
-  @Timed
   @PATCH
   @Produces(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
   @Consumes(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
   public CompletableFuture<Response> modifyGroup(
       @Auth GroupUser user,
+      @HeaderParam(jakarta.ws.rs.core.HttpHeaders.USER_AGENT) String userAgent,
       @QueryParam("inviteLinkPassword") String inviteLinkPasswordString,
       @NoUnknownFields GroupChange.Actions submittedActions) {
-    return super.modifyGroup(user, inviteLinkPasswordString, submittedActions)
+    return super.modifyGroup(user, userAgent, inviteLinkPasswordString, submittedActions)
         .thenApply(response -> {
               if (response.getEntity() instanceof final GroupChangeResponse gcr) {
                 return Response.fromResponse(response).entity(gcr.getGroupChange()).build();

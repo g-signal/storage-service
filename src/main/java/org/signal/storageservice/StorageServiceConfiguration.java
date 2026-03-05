@@ -6,17 +6,22 @@
 package org.signal.storageservice;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.vdurmont.semver4j.Semver;
 import io.dropwizard.core.Configuration;
 import org.signal.storageservice.configuration.AuthenticationConfiguration;
 import org.signal.storageservice.configuration.BigTableConfiguration;
 import org.signal.storageservice.configuration.CdnConfiguration;
-import org.signal.storageservice.configuration.DatadogConfiguration;
+import org.signal.storageservice.configuration.OpenTelemetryConfiguration;
 import org.signal.storageservice.configuration.GroupConfiguration;
 import org.signal.storageservice.configuration.WarmupConfiguration;
 import org.signal.storageservice.configuration.ZkConfiguration;
 
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
+import org.signal.storageservice.util.ua.ClientPlatform;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Set;
 
 public class StorageServiceConfiguration extends Configuration {
 
@@ -47,12 +52,17 @@ public class StorageServiceConfiguration extends Configuration {
 
   @JsonProperty
   @Valid
-  private DatadogConfiguration datadog;
+  @NotNull
+  private OpenTelemetryConfiguration openTelemetry;
 
   @JsonProperty
   @Valid
   @NotNull
   private WarmupConfiguration warmup = new WarmupConfiguration(5);
+
+  @JsonProperty
+  @NotNull
+  private Map<ClientPlatform, Set<Semver>> recognizedClientVersions = Collections.emptyMap();
 
   public BigTableConfiguration getBigTableConfiguration() {
     return bigtable;
@@ -74,11 +84,15 @@ public class StorageServiceConfiguration extends Configuration {
     return group;
   }
 
-  public DatadogConfiguration getDatadogConfiguration() {
-    return datadog;
+  public OpenTelemetryConfiguration getOpenTelemetryConfiguration() {
+    return openTelemetry;
   }
 
   public WarmupConfiguration getWarmUpConfiguration() {
     return warmup;
+  }
+
+  public Map<ClientPlatform, Set<Semver>> getRecognizedClientVersions() {
+    return recognizedClientVersions;
   }
 }

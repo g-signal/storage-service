@@ -37,6 +37,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.IntStream;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -303,6 +304,40 @@ class StorageManagerTest {
   }
 
   @Test
+  void testSetLargeRequest() throws Exception {
+    final User user = new User(UUID.randomUUID());
+    final StorageManager storageManager = new StorageManager(client, MANIFESTS_TABLE_NAME, CONTACTS_TABLE_NAME);
+
+    final StorageManifest manifest = StorageManifest.newBuilder()
+        .setVersion(1)
+        .setValue(ByteString.copyFromUtf8("A manifest"))
+        .build();
+
+    // Make sure we have multiple "pages" of mutations
+    final int insertCount = (StorageItemsTable.MAX_MUTATIONS / StorageItemsTable.MUTATIONS_PER_INSERT) + 1;
+    final int deleteCount = StorageItemsTable.MAX_MUTATIONS + 1;
+
+    final List<StorageItem> inserts = IntStream.range(0, insertCount)
+        .mapToObj(i -> StorageItem.newBuilder()
+            .setKey(ByteString.copyFromUtf8("key-" + i))
+            .setValue(ByteString.copyFromUtf8("value-" + i))
+            .build())
+        .toList();
+
+    final List<ByteString> deletes = IntStream.range(0, deleteCount)
+        .mapToObj(i -> ByteString.copyFromUtf8("deleted-key-" + i))
+        .toList();
+
+    final Optional<StorageManifest> result = storageManager.set(user, manifest, inserts, deletes).get();
+
+    assertTrue(result.isEmpty());
+    assertEquals(Optional.of(manifest), storageManager.getManifest(user).join());
+
+    assertEquals(insertCount,
+        client.readRows(Query.create(CONTACTS_TABLE_ID).prefix(user.getUuid() + "#contact#")).stream().count());
+  }
+
+  @Test
   void testClearItems() throws ExecutionException, InterruptedException {
     UUID userId = UUID.randomUUID();
     User user = new User(userId);
@@ -389,8 +424,7 @@ class StorageManagerTest {
       final BulkMutation bulkMutation = BulkMutation.create(CONTACTS_TABLE_ID);
 
       // Each setCell() is a mutation
-      final int setCellCallsPerLoop = 2;
-      for (int i = 0; i < StorageItemsTable.MAX_MUTATIONS; i += setCellCallsPerLoop) {
+      for (int i = 0; i < StorageItemsTable.MAX_MUTATIONS; i += StorageItemsTable.MUTATIONS_PER_INSERT) {
         bulkMutation.add(String.format("%s#contact#somekey%d_%05d", userId, chunk, i),
             Mutation.create()
                 .setCell(StorageItemsTable.FAMILY, StorageItemsTable.COLUMN_DATA, "data" + String.format("%03d", i))

@@ -5,7 +5,7 @@
 
 package org.signal.storageservice.groups;
 
-import static com.codahale.metrics.MetricRegistry.name;
+import static org.signal.storageservice.metrics.MetricsUtil.name;
 
 import com.google.protobuf.ByteString;
 import io.micrometer.core.instrument.Metrics;
@@ -340,7 +340,7 @@ public class GroupValidator {
       GroupPublicParams publicParams = new GroupPublicParams(group.getPublicKey().toByteArray());
 
       if (presentationData == null || presentationData.isEmpty()) {
-        throw new BadRequestException();
+        throw new BadRequestException("empty profile key presentation");
       }
 
       ProfileKeyCredentialPresentation presentation = new ProfileKeyCredentialPresentation(presentationData.toByteArray());

@@ -5,16 +5,17 @@
 
 package org.signal.storageservice.controllers;
 
-import static com.codahale.metrics.MetricRegistry.name;
+import static org.signal.storageservice.metrics.MetricsUtil.name;
 
-import com.codahale.metrics.annotation.Timed;
 import com.google.common.net.HttpHeaders;
 import com.google.protobuf.ByteString;
 import com.google.protobuf.InvalidProtocolBufferException;
 import io.dropwizard.auth.Auth;
 import io.micrometer.core.instrument.DistributionSummary;
 import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Tag;
 import io.micrometer.core.instrument.Tags;
+import io.micrometer.core.instrument.Timer;
 import java.security.MessageDigest;
 import java.security.SecureRandom;
 import java.time.Clock;
@@ -29,6 +30,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import jakarta.ws.rs.BadRequestException;
@@ -91,8 +93,10 @@ public class GroupsController {
   private static final int ANNOUNCEMENTS_ONLY_CHANGE_EPOCH = 3;
   private static final int BANNED_USERS_CHANGE_EPOCH = 4;
   private static final int JOIN_BY_PNI_EPOCH = 5;
+  private static final int MEMBER_LABEL_EPOCH = 6;
 
   private static final String LOG_SIZE_BYTES_DISTRIBUTION_SUMMARY_NAME = name(GroupsController.class, "logSizeBytes");
+  private static final String GROUP_PATCH_BAD_REQUEST_COUNTER_NAME = name(GroupsController.class, "patchBadRequest");
 
   private final Clock clock;
   private final GroupsManager groupsManager;
@@ -100,6 +104,11 @@ public class GroupsController {
   private final ServerSecretParams serverSecretParams;
   private final GroupValidator groupValidator;
   private final GroupChangeApplicator groupChangeApplicator;
+
+  private final Timer getGroupTimer = Metrics.timer(name(GroupsController.class, "getGroup"));
+  private final Timer getGroupLogsTimer = Metrics.timer(name(GroupsController.class, "getGroupLogs"));
+  private final Timer createGroupTimer = Metrics.timer(name(GroupsController.class, "createGroup"));
+  private final Timer modifyGroupTimer = Metrics.timer(name(GroupsController.class, "modifyGroup"));
 
   private final PolicySigner policySigner;
   private final PostPolicyGenerator policyGenerator;
@@ -127,10 +136,10 @@ public class GroupsController {
     this.externalGroupCredentialGenerator = externalGroupCredentialGenerator;
   }
 
-  @Timed
   @GET
   @Produces(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
   public CompletableFuture<Response> getGroup(@Auth GroupUser user) {
+    final Timer.Sample sample = Timer.start();
     return groupsManager.getGroup(user.getGroupId()).thenApply(group -> {
       if (group.isEmpty()) {
         return Response.status(Response.Status.NOT_FOUND).build();
@@ -146,10 +155,9 @@ public class GroupsController {
       } else  {
         return Response.status(Response.Status.FORBIDDEN).build();
       }
-    });
+    }).whenComplete((_result, _throwable) -> sample.stop(getGroupTimer));
   }
 
-  @Timed
   @GET
   @Produces(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
   @Path("/join/{inviteLinkPassword: [^/]*}")
@@ -185,7 +193,7 @@ public class GroupsController {
       groupJoinInfoBuilder.setPublicKey(group.get().getPublicKey());
       groupJoinInfoBuilder.setTitle(group.get().getTitle());
       groupJoinInfoBuilder.setDescription(group.get().getDescription());
-      groupJoinInfoBuilder.setAvatar(group.get().getAvatar());
+      groupJoinInfoBuilder.setAvatar(group.get().getAvatarUrl());
       groupJoinInfoBuilder.setMemberCount(group.get().getMembersCount());
       groupJoinInfoBuilder.setAddFromInviteLink(accessRequired);
       groupJoinInfoBuilder.setVersion(group.get().getVersion());
@@ -195,7 +203,6 @@ public class GroupsController {
     });
   }
 
-  @Timed
   @GET
   @Produces(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
   @Path("/joined_at_version")
@@ -219,7 +226,6 @@ public class GroupsController {
     });
   }
 
-  @Timed
   @GET
   @Produces(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
   @Path("/logs/{fromVersion}")
@@ -232,10 +238,13 @@ public class GroupsController {
       @QueryParam("maxSupportedChangeEpoch") Optional<Integer> maxSupportedChangeEpoch,
       @QueryParam("includeFirstState") boolean includeFirstState,
       @QueryParam("includeLastState") boolean includeLastState) {
+    final Timer.Sample sample = Timer.start();
+
     if (cachedSendEndorsementsExpiration == null) {
       // we can't just use @NotNull yet because /v1/groups/logs/{fromVersion}, implemented by
       // GroupsV1Controller which subclasses this class, doesn't require (or indeed expect) the
       // Cached-Send-Endorsements header.
+      sample.stop(getGroupLogsTimer);
       return CompletableFuture.completedFuture(Response.status(Response.Status.BAD_REQUEST).build());
     }
     final Duration cachedSendEndorsementsTtl = Duration.between(clock.instant(), Instant.ofEpochSecond(cachedSendEndorsementsExpiration));
@@ -301,7 +310,7 @@ public class GroupsController {
           distributionSummary(LOG_SIZE_BYTES_DISTRIBUTION_SUMMARY_NAME, userAgent)
               .record(resp.getLength());
           return resp;
-        });
+    }).whenComplete((_result, _throwable) -> sample.stop(getGroupLogsTimer));
   }
 
   private static boolean hasAnyMembershipChanges(ByteString groupId, Iterable<GroupChangeState> records) {
@@ -331,13 +340,11 @@ public class GroupsController {
 
   private static DistributionSummary distributionSummary(final String name, final String userAgent) {
     return DistributionSummary.builder(name)
-        .publishPercentiles(0.75, 0.95, 0.99, 0.999)
-        .distributionStatisticExpiry(Duration.ofMinutes(5))
+        .publishPercentileHistogram(true)
         .tags(Tags.of(UserAgentTagUtil.getPlatformTag(userAgent)))
         .register(Metrics.globalRegistry);
   }
 
-  @Timed
   @GET
   @Produces(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
   @Path("/avatar/form")
@@ -375,28 +382,41 @@ public class GroupsController {
     });
   }
 
-  @Timed
   @PUT
   @Produces(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
   @Consumes(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
   public CompletableFuture<Response> createGroup(@Auth GroupUser user, @NoUnknownFields Group group) {
-    if (group.getVersion() != 0)                                        return CompletableFuture.completedFuture(Response.status(Response.Status.BAD_REQUEST).build());
-    if (group.getPublicKey() == null || group.getPublicKey().isEmpty()) return CompletableFuture.completedFuture(Response.status(Response.Status.BAD_REQUEST).build());
-    if (group.getTitle() == null || group.getTitle().isEmpty())         return CompletableFuture.completedFuture(Response.status(Response.Status.BAD_REQUEST).build());
+    final Timer.Sample sample = Timer.start();
 
-    if (group.getAccessControl().getAttributes() == AccessControl.AccessRequired.UNKNOWN      ||
+    if (group.getVersion() != 0) {
+      sample.stop(createGroupTimer);
+      return CompletableFuture.completedFuture(Response.status(Response.Status.BAD_REQUEST).build());
+    }
+    if (group.getPublicKey() == null || group.getPublicKey().isEmpty()) {
+      sample.stop(createGroupTimer);
+      return CompletableFuture.completedFuture(Response.status(Response.Status.BAD_REQUEST).build());
+    }
+    if (group.getTitle() == null || group.getTitle().isEmpty()) {
+      sample.stop(createGroupTimer);
+      return CompletableFuture.completedFuture(Response.status(Response.Status.BAD_REQUEST).build());
+    }
+
+    if (group.getAccessControl().getAttributes() == AccessControl.AccessRequired.UNKNOWN ||
         group.getAccessControl().getAttributes() == AccessControl.AccessRequired.UNRECOGNIZED ||
-        group.getAccessControl().getMembers() == AccessControl.AccessRequired.UNKNOWN         ||
+        group.getAccessControl().getMembers() == AccessControl.AccessRequired.UNKNOWN ||
         group.getAccessControl().getMembers() == AccessControl.AccessRequired.UNRECOGNIZED)
     {
+      sample.stop(createGroupTimer);
       return CompletableFuture.completedFuture(Response.status(Response.Status.BAD_REQUEST).build());
     }
 
     if (!MessageDigest.isEqual(user.getGroupPublicKey().serialize(), group.getPublicKey().toByteArray())) {
+      sample.stop(createGroupTimer);
       return CompletableFuture.completedFuture(Response.status(Response.Status.FORBIDDEN).build());
     }
 
-    if (!groupValidator.isValidAvatarUrl(group.getAvatar(), user.getGroupId())) {
+    if (!groupValidator.isValidAvatarUrl(group.getAvatarUrl(), user.getGroupId())) {
+      sample.stop(createGroupTimer);
       return CompletableFuture.completedFuture(Response.status(Response.Status.BAD_REQUEST).build());
     }
 
@@ -412,6 +432,7 @@ public class GroupsController {
     Optional<Member> source = GroupAuth.getMember(user, group);
 
     if (source.isEmpty() || source.get().getRole() != Member.Role.ADMINISTRATOR){
+      sample.stop(createGroupTimer);
       return CompletableFuture.completedFuture(Response.status(Response.Status.BAD_REQUEST).build());
     }
 
@@ -425,6 +446,7 @@ public class GroupsController {
     Stream<ByteString> membersPendingProfileKeyUserIds = group.getMembersPendingProfileKeyList().stream().map(memberPendingProfileKey -> memberPendingProfileKey.getMember().getUserId());
 
     if (CollectionUtil.containsDuplicates(Stream.concat(memberUserIds, membersPendingProfileKeyUserIds).collect(Collectors.toList()))) {
+      sample.stop(createGroupTimer);
       return CompletableFuture.completedFuture(Response.status(Response.Status.BAD_REQUEST).build());
     }
 
@@ -440,7 +462,7 @@ public class GroupsController {
     final GroupChange initialGroupChange = GroupChange.newBuilder()
                                                       .setActions(Actions.newBuilder()
                                                                          .setVersion(0)
-                                                                         .setSourceUuid(source.get().getUserId())
+                                                                         .setSourceUserId(source.get().getUserId())
                                                                          .build().toByteString())
                                                       .build();
 
@@ -466,17 +488,19 @@ public class GroupsController {
                   } else {
                     return Response.status(Response.Status.CONFLICT).build();
                   }
-                });
+                }).whenComplete((_result, _throwable) -> sample.stop(createGroupTimer));
   }
 
-  @Timed
   @PATCH
   @Produces(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
   @Consumes(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
   public CompletableFuture<Response> modifyGroup(
       @Auth GroupUser user,
+      @HeaderParam(jakarta.ws.rs.core.HttpHeaders.USER_AGENT) String userAgent,
       @QueryParam("inviteLinkPassword") String inviteLinkPasswordString,
       @NoUnknownFields GroupChange.Actions submittedActions) {
+    final Timer.Sample sample = Timer.start();
+
     final byte[] inviteLinkPassword;
     if (StringUtils.isEmpty(inviteLinkPasswordString)) {
       inviteLinkPassword = null;
@@ -528,6 +552,10 @@ public class GroupsController {
       groupChangeApplicator.applyAddMembers(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getAddMembersList());
       groupChangeApplicator.applyDeleteMembers(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getDeleteMembersList());
       groupChangeApplicator.applyModifyMemberRoles(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getModifyMemberRolesList());
+      if (actions.getModifyMemberLabelCount() > 0) {
+        groupChangeApplicator.applyModifyMemberLabel(user, modifiedGroupBuilder, actions.getModifyMemberLabelList());
+        changeEpoch = Math.max(changeEpoch, MEMBER_LABEL_EPOCH);
+      }
       groupChangeApplicator.applyModifyMemberProfileKeys(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getModifyMemberProfileKeysList());
 
       groupChangeApplicator.applyAddMembersPendingProfileKey(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getAddMembersPendingProfileKeyList());
@@ -569,12 +597,14 @@ public class GroupsController {
         groupChangeApplicator.applyModifyAnnouncementsOnly(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getModifyAnnouncementsOnly());
         changeEpoch = Math.max(changeEpoch, ANNOUNCEMENTS_ONLY_CHANGE_EPOCH);
       }
+
+      final Actions.Builder actionsBuilder = actions.toBuilder();
+
       if (actions.getPromoteMembersPendingPniAciProfileKeyCount() != 0) {
-        groupChangeApplicator.applyPromoteMembersPendingPniAciProfileKey(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getPromoteMembersPendingPniAciProfileKeyList());
+        groupChangeApplicator.applyPromoteMembersPendingPniAciProfileKey(group.get(), modifiedGroupBuilder, actionsBuilder);
         changeEpoch = Math.max(changeEpoch, JOIN_BY_PNI_EPOCH);
       }
 
-      Actions.Builder actionsBuilder = actions.toBuilder();
       // this must be the last change applied
       groupChangeApplicator.applyEnsureSomeAdminsExist(actionsBuilder, modifiedGroupBuilder);
 
@@ -582,7 +612,7 @@ public class GroupsController {
           .selectChangeSource(user, group.get(), modifiedGroupBuilder::build)
           .orElseThrow(ForbiddenException::new);
 
-      actions = actionsBuilder.setSourceUuid(sourceUuid).build();
+      actions = actionsBuilder.setSourceUserId(sourceUuid).build();
 
       final byte[] serializedActions = actions.toByteArray();
       final int version = actions.getVersion();
@@ -613,10 +643,23 @@ public class GroupsController {
                     user.getGroupId(), version, signedGroupChange, updatedGroupState)
                     .thenApply(success -> Response.ok(response).build());
               });
-        });
+        }).whenComplete(
+            (result, throwable) -> {
+              if (throwable != null) {
+                while (throwable instanceof CompletionException e && throwable.getCause() != null) {
+                  throwable = e.getCause();
+                }
+                if (throwable instanceof BadRequestException e) {
+                  final String reason = e.getMessage().replace(' ', '-').toLowerCase();
+                  Metrics.counter(
+                      GROUP_PATCH_BAD_REQUEST_COUNTER_NAME,
+                      Tags.of(UserAgentTagUtil.getPlatformTag(userAgent), Tag.of("reason", reason))).increment();
+                }
+              }
+              sample.stop(modifyGroupTimer);
+            });
   }
 
-  @Timed
   @GET
   @Produces(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
   @Path("/token")

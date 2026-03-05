@@ -68,7 +68,7 @@ class GroupsControllerMaxSizeTest extends BaseGroupsControllerTest {
                                                       .setMembers(AccessControl.AccessRequired.MEMBER)
                                                       .setAttributes(AccessControl.AccessRequired.MEMBER))
                        .setTitle(ByteString.copyFromUtf8("Some title"))
-                       .setAvatar(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
+                       .setAvatarUrl(avatarFor(groupPublicParams.getGroupIdentifier().serialize()))
                        .setVersion(0)
                        .addMembers(Member.newBuilder()
                                          .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))
@@ -121,7 +121,7 @@ class GroupsControllerMaxSizeTest extends BaseGroupsControllerTest {
     groupBuilder.setTitle(ByteString.copyFromUtf8("Some title"));
     groupBuilder.setDescription(ByteString.copyFromUtf8("Some description"));
     final String avatar = avatarFor(groupPublicParams.getGroupIdentifier().serialize());
-    groupBuilder.setAvatar(avatar);
+    groupBuilder.setAvatarUrl(avatar);
     groupBuilder.setVersion(0);
     groupBuilder.addMembersBuilder()
         .setUserId(ByteString.copyFrom(validUserPresentation.getUuidCiphertext().serialize()))

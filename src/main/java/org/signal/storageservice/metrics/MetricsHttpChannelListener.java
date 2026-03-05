@@ -44,10 +44,13 @@ public class MetricsHttpChannelListener implements HttpChannel.Listener, Contain
   private record RequestInfo(String path, String method, int statusCode, @Nullable String userAgent) {
   }
 
-  // Use the same counter namespace as the now-retired MetricsRequestEventListener for continuity
   @VisibleForTesting
   static final String REQUEST_COUNTER_NAME =
-      "org.signal.storageservice.metrics.MetricsRequestEventListener.request";
+    MetricsUtil.name(MetricsHttpChannelListener.class, "request");
+
+  @VisibleForTesting
+  static final String REQUEST_BYTES_COUNTER_NAME =
+      MetricsUtil.name(MetricsHttpChannelListener.class, "requestBytes");
 
   @VisibleForTesting
   static final String RESPONSE_BYTES_COUNTER_NAME =
@@ -121,12 +124,13 @@ public class MetricsHttpChannelListener implements HttpChannel.Listener, Contain
     final RequestInfo requestInfo = getRequestInfo(request);
 
     final Tags tags = Tags.of(
-        PATH_TAG, requestInfo.path(),
-        METHOD_TAG, requestInfo.method(),
-        STATUS_CODE_TAG, String.valueOf(requestInfo.statusCode()))
+            PATH_TAG, requestInfo.path(),
+            METHOD_TAG, requestInfo.method(),
+            STATUS_CODE_TAG, String.valueOf(requestInfo.statusCode()))
         .and(UserAgentTagUtil.getPlatformTag(requestInfo.userAgent()));
 
     meterRegistry.counter(REQUEST_COUNTER_NAME, tags).increment();
+    meterRegistry.counter(REQUEST_BYTES_COUNTER_NAME, tags).increment(request.getContentRead());
     meterRegistry.counter(RESPONSE_BYTES_COUNTER_NAME, tags).increment(request.getResponse().getContentCount());
   }
 
