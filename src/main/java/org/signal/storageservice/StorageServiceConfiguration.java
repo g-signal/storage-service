@@ -47,7 +47,6 @@ public class StorageServiceConfiguration extends Configuration {
 
   @JsonProperty
   @Valid
-  @NotNull
   private DatadogConfiguration datadog;
 
   @JsonProperty

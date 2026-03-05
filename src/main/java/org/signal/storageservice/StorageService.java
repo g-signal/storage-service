@@ -63,9 +63,9 @@ public class StorageService extends Application<StorageServiceConfiguration> {
     UncaughtExceptionHandler.register();
 
     BigtableDataSettings bigtableDataSettings = BigtableDataSettings.newBuilder()
-                                                                    .setProjectId(config.getBigTableConfiguration().getProjectId())
-                                                                    .setInstanceId(config.getBigTableConfiguration().getInstanceId())
-                                                                    .build();
+        .setProjectId(config.getBigTableConfiguration().getProjectId())
+        .setInstanceId(config.getBigTableConfiguration().getInstanceId())
+        .build();
     BigtableDataClient bigtableDataClient = BigtableDataClient.create(bigtableDataSettings);
     ServerSecretParams serverSecretParams = new ServerSecretParams(config.getZkConfiguration().getServerSecret());
     StorageManager     storageManager     = new StorageManager(bigtableDataClient, config.getBigTableConfiguration().getContactManifestsTableId(), config.getBigTableConfiguration().getContactsTableId());

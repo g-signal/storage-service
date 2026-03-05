@@ -51,17 +51,20 @@ public class MetricsUtil {
     SharedMetricRegistries.add(StorageMetrics.NAME, environment.metrics());
 
     {
-      final DatadogMeterRegistry datadogMeterRegistry = new DatadogMeterRegistry(
-              config.getDatadogConfiguration(), io.micrometer.core.instrument.Clock.SYSTEM);
+      // Only create and register Datadog metrics if enabled
+      if (config.getDatadogConfiguration() != null && config.getDatadogConfiguration().isEnabled()) {
+        final DatadogMeterRegistry datadogMeterRegistry = new DatadogMeterRegistry(
+                config.getDatadogConfiguration(), io.micrometer.core.instrument.Clock.SYSTEM);
 
-      datadogMeterRegistry.config().commonTags(
-              Tags.of(
-                      "service", "storage",
-                      "host", HostSupplier.getHost(),
-                      "version", StorageServiceVersion.getServiceVersion(),
-                      "env", config.getDatadogConfiguration().getEnvironment()));
+        datadogMeterRegistry.config().commonTags(
+                Tags.of(
+                        "service", "storage",
+                        "host", HostSupplier.getHost(),
+                        "version", StorageServiceVersion.getServiceVersion(),
+                        "env", config.getDatadogConfiguration().getEnvironment()));
 
-      Metrics.addRegistry(datadogMeterRegistry);
+        Metrics.addRegistry(datadogMeterRegistry);
+      }
     }
   }
 

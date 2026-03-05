@@ -30,6 +30,9 @@ public class DatadogConfiguration implements DatadogConfig {
   @Min(1)
   private int batchSize = 5_000;
 
+  @JsonProperty
+  private boolean enabled = true;
+
   @Override
   public String apiKey() {
     return apiKey;
@@ -52,6 +55,10 @@ public class DatadogConfiguration implements DatadogConfig {
   @Override
   public String hostTag() {
     return "host";
+  }
+
+  public boolean isEnabled() {
+    return enabled;
   }
 
   @Override
