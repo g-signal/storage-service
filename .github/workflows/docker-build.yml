@@ -41,9 +41,17 @@ jobs:
           git describe --tags --dirty || echo "No tags found"
           ./mvnw help:evaluate -Dexpression=project.version -q -DforceStdout
 
+      - name: Get git tag for image version
+        id: version
+        run: |
+          GIT_TAG=$(git describe --tags --exact-match 2>/dev/null || git describe --tags --dirty)
+          echo "tag=${GIT_TAG}" >> $GITHUB_OUTPUT
+          echo "Using tag: ${GIT_TAG}"
+
       - name: Build and push with Jib
         run: |
           ./mvnw -e -B clean package jib:build \
             -Pdocker-deploy \
             -Denv=staging \
+            -Djib.to.image=${{ secrets.DOCKERHUB_USERNAME }}/storage-service:${{ steps.version.outputs.tag }} \
             -DskipTests
