@@ -33,6 +33,7 @@ import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+import jakarta.validation.constraints.NotNull;
 import jakarta.ws.rs.BadRequestException;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.DefaultValue;
@@ -45,6 +46,7 @@ import jakarta.ws.rs.Path;
 import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
+import jakarta.ws.rs.WebApplicationException;
 import jakarta.ws.rs.core.Response;
 import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.lang3.StringUtils;
@@ -94,6 +96,7 @@ public class GroupsController {
   private static final int BANNED_USERS_CHANGE_EPOCH = 4;
   private static final int JOIN_BY_PNI_EPOCH = 5;
   private static final int MEMBER_LABEL_EPOCH = 6;
+  private static final int GROUP_TERMINATION_EPOCH = 7;
 
   private static final String LOG_SIZE_BYTES_DISTRIBUTION_SUMMARY_NAME = name(GroupsController.class, "logSizeBytes");
   private static final String GROUP_PATCH_BAD_REQUEST_COUNTER_NAME = name(GroupsController.class, "patchBadRequest");
@@ -148,7 +151,9 @@ public class GroupsController {
       final boolean fullMember = GroupAuth.isMember(user, group.get());
       if (fullMember || GroupAuth.isMemberPendingProfileKey(user, group.get())) {
         final GroupResponse.Builder responseBuilder = GroupResponse.newBuilder().setGroup(group.get());
-        if (fullMember) {
+        // don't add a GSE unless user is actually supposed to be able send messages to this group (i.e. they're really
+        // in it, and the group isn't terminated)
+        if (fullMember && !group.get().getTerminated()) {
           responseBuilder.setGroupSendEndorsementsResponse(getSerializedGroupSendEndorsements(group.get()));
         }
         return Response.ok(responseBuilder.build()).build();
@@ -187,6 +192,11 @@ public class GroupsController {
 
       if (GroupAuth.isMemberBanned(user, group.get())) {
         return Response.status(Response.Status.FORBIDDEN).header("X-Signal-Forbidden-Reason", "banned").build();
+      }
+
+      if (group.get().getTerminated()) {
+        // can't join a terminated group, even with a good invite link
+        return Response.status(423, "Group is terminated").build();
       }
 
       GroupJoinInfo.Builder groupJoinInfoBuilder = GroupJoinInfo.newBuilder();
@@ -298,8 +308,12 @@ public class GroupsController {
                               final GroupChanges.Builder groupChangesBuilder = GroupChanges.newBuilder()
                                   .addAllGroupChanges(records);
 
-                              if (cachedSendEndorsementsTtl.compareTo(groupConfiguration.groupSendEndorsementMinimumLifetime()) < 0 ||
-                                  hasAnyMembershipChanges(user.getGroupId(), records)) {
+                              // don't send a GSE if the group is terminated, since the user can't send messages to it;
+                              // also don't send one unless the requester indicates their cached endorsement is stale or
+                              // something has changed (possibly including the set of group members) in the logs they're asking for
+                              if (!group.get().getTerminated() &&
+                                  (cachedSendEndorsementsTtl.compareTo(groupConfiguration.groupSendEndorsementMinimumLifetime()) < 0 ||
+                                      hasAnyMembershipChanges(user.getGroupId(), records))) {
                                 groupChangesBuilder.setGroupSendEndorsementsResponse(getSerializedGroupSendEndorsements(group.get()));
                               }
 
@@ -340,7 +354,6 @@ public class GroupsController {
 
   private static DistributionSummary distributionSummary(final String name, final String userAgent) {
     return DistributionSummary.builder(name)
-        .publishPercentileHistogram(true)
         .tags(Tags.of(UserAgentTagUtil.getPlatformTag(userAgent)))
         .register(Metrics.globalRegistry);
   }
@@ -355,6 +368,10 @@ public class GroupsController {
       if (group.isPresent()) {
         if (!GroupAuth.isModifyAttributesAllowed(user, group.get())) {
           return Response.status(Response.Status.FORBIDDEN).build();
+        }
+        if (group.get().getTerminated()) {
+          // no point in uploading an avatar for a group if you won't be able to set that avatar
+          return Response.status(423, "Group is terminated").build();
         }
       }
 
@@ -385,7 +402,7 @@ public class GroupsController {
   @PUT
   @Produces(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
   @Consumes(ProtocolBufferMediaType.APPLICATION_PROTOBUF)
-  public CompletableFuture<Response> createGroup(@Auth GroupUser user, @NoUnknownFields Group group) {
+  public CompletableFuture<Response> createGroup(@Auth GroupUser user, @NotNull @NoUnknownFields Group group) {
     final Timer.Sample sample = Timer.start();
 
     if (group.getVersion() != 0) {
@@ -397,6 +414,11 @@ public class GroupsController {
       return CompletableFuture.completedFuture(Response.status(Response.Status.BAD_REQUEST).build());
     }
     if (group.getTitle() == null || group.getTitle().isEmpty()) {
+      sample.stop(createGroupTimer);
+      return CompletableFuture.completedFuture(Response.status(Response.Status.BAD_REQUEST).build());
+    }
+
+    if (!groupValidator.isValidDisappearingMessageTimer(group)) {
       sample.stop(createGroupTimer);
       return CompletableFuture.completedFuture(Response.status(Response.Status.BAD_REQUEST).build());
     }
@@ -479,12 +501,13 @@ public class GroupsController {
             }).thenApply(
                 result -> {
                   if (result) {
-                    return Response.ok(
-                        GroupResponse.newBuilder()
-                            .setGroup(validatedGroup)
-                            .setGroupSendEndorsementsResponse(getSerializedGroupSendEndorsements(validatedGroup))
-                            .build())
-                        .build();
+                    GroupResponse.Builder responseBuilder = GroupResponse.newBuilder().setGroup(validatedGroup);
+                    // it would be ridiculous to create a pre-terminated group but we technically don't stop you, so
+                    // don't send a GSE for one in that case
+                    if (!validatedGroup.getTerminated()) {
+                      responseBuilder.setGroupSendEndorsementsResponse(getSerializedGroupSendEndorsements(validatedGroup));
+                    }
+                    return Response.ok(responseBuilder.build()).build();
                   } else {
                     return Response.status(Response.Status.CONFLICT).build();
                   }
@@ -498,7 +521,7 @@ public class GroupsController {
       @Auth GroupUser user,
       @HeaderParam(jakarta.ws.rs.core.HttpHeaders.USER_AGENT) String userAgent,
       @QueryParam("inviteLinkPassword") String inviteLinkPasswordString,
-      @NoUnknownFields GroupChange.Actions submittedActions) {
+      @NotNull @NoUnknownFields GroupChange.Actions submittedActions) {
     final Timer.Sample sample = Timer.start();
 
     final byte[] inviteLinkPassword;
@@ -512,13 +535,20 @@ public class GroupsController {
         throw new BadRequestException("No such group exists");
       }
 
-      if (group.get().getVersion() >= submittedActions.getVersion() || group.get().getVersion() != submittedActions.getVersion() - 1) {
-        return CompletableFuture.completedFuture(Response.status(Response.Status.CONFLICT).entity(group.get()).build());
+      if (group.get().getVersion() != submittedActions.getVersion() - 1) {
+        return CompletableFuture.completedFuture(Response.status(Response.Status.CONFLICT).build());
       }
 
       if (!submittedActions.getGroupId().isEmpty()) {
         throw new BadRequestException("requested actions must not set group id");
       }
+
+      // terminated groups do not allow *any* changes, including leaving
+      if (group.get().getTerminated()) {
+        throw new WebApplicationException("Group is terminated", 423);
+      }
+
+      final Optional<ByteString> overridingChangeSource = groupValidator.validateSpecialChangeSourceActions(user, group.get(), submittedActions);
 
       Actions actions = submittedActions.toBuilder()
                                         .setGroupId(user.getGroupId())
@@ -552,8 +582,8 @@ public class GroupsController {
       groupChangeApplicator.applyAddMembers(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getAddMembersList());
       groupChangeApplicator.applyDeleteMembers(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getDeleteMembersList());
       groupChangeApplicator.applyModifyMemberRoles(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getModifyMemberRolesList());
-      if (actions.getModifyMemberLabelCount() > 0) {
-        groupChangeApplicator.applyModifyMemberLabel(user, modifiedGroupBuilder, actions.getModifyMemberLabelList());
+      if (actions.getModifyMemberLabelsCount() > 0) {
+        groupChangeApplicator.applyModifyMemberLabel(user, group.get(), modifiedGroupBuilder, actions.getModifyMemberLabelsList());
         changeEpoch = Math.max(changeEpoch, MEMBER_LABEL_EPOCH);
       }
       groupChangeApplicator.applyModifyMemberProfileKeys(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getModifyMemberProfileKeysList());
@@ -568,10 +598,13 @@ public class GroupsController {
 
       if (actions.hasModifyAttributesAccess()) groupChangeApplicator.applyModifyAttributesAccess(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getModifyAttributesAccess());
       if (actions.hasModifyMemberAccess()) groupChangeApplicator.applyModifyMembersAccess(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getModifyMemberAccess());
-
       if (actions.hasModifyAddFromInviteLinkAccess()) {
         groupChangeApplicator.applyModifyAddFromInviteLinkAccess(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getModifyAddFromInviteLinkAccess());
         changeEpoch = Math.max(changeEpoch, INVITE_LINKS_CHANGE_EPOCH);
+      }
+      if (actions.hasModifyMemberLabelAccess()) {
+        groupChangeApplicator.applyModifyMemberLabelAccess(user, group.get(), modifiedGroupBuilder, actions.getModifyMemberLabelAccess());
+        changeEpoch = Math.max(changeEpoch, MEMBER_LABEL_EPOCH);
       }
       if (actions.getAddMembersPendingAdminApprovalCount() != 0) {
         groupChangeApplicator.applyAddMembersPendingAdminApproval(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getAddMembersPendingAdminApprovalList());
@@ -597,6 +630,10 @@ public class GroupsController {
         groupChangeApplicator.applyModifyAnnouncementsOnly(user, inviteLinkPassword, group.get(), modifiedGroupBuilder, actions.getModifyAnnouncementsOnly());
         changeEpoch = Math.max(changeEpoch, ANNOUNCEMENTS_ONLY_CHANGE_EPOCH);
       }
+      if (actions.hasTerminateGroup()) {
+        groupChangeApplicator.applyTerminateGroup(user, group.get(), modifiedGroupBuilder);
+        changeEpoch = Math.max(changeEpoch, GROUP_TERMINATION_EPOCH);
+      }
 
       final Actions.Builder actionsBuilder = actions.toBuilder();
 
@@ -608,9 +645,11 @@ public class GroupsController {
       // this must be the last change applied
       groupChangeApplicator.applyEnsureSomeAdminsExist(actionsBuilder, modifiedGroupBuilder);
 
-      final ByteString sourceUuid = GroupAuth
-          .selectChangeSource(user, group.get(), modifiedGroupBuilder::build)
-          .orElseThrow(ForbiddenException::new);
+      final ByteString sourceUuid = overridingChangeSource.orElseGet(() -> {
+          return GroupAuth
+              .selectChangeSource(user, group.get(), modifiedGroupBuilder::build)
+              .orElseThrow(ForbiddenException::new);
+      });
 
       actions = actionsBuilder.setSourceUserId(sourceUuid).build();
 
@@ -629,13 +668,13 @@ public class GroupsController {
       return groupsManager.updateGroup(user.getGroupId(), updatedGroupState)
           .thenCompose(result -> {
                 if (result.isPresent()) {
-                  return CompletableFuture.completedFuture(Response.status(Response.Status.CONFLICT).entity(result.get()).build());
+                  return CompletableFuture.completedFuture(Response.status(Response.Status.CONFLICT).build());
                 }
 
                 final GroupChangeResponse.Builder responseBuilder =
                     GroupChangeResponse.newBuilder().setGroupChange(signedGroupChange);
-                // the change might have made the requester no longer a member of the group, so check that before sending GSEs
-                if (GroupAuth.isMember(user, updatedGroupState)) {
+                // the change might have made the requester no longer a member of the group or terminated the group, so check that before sending GSEs
+                if (!updatedGroupState.getTerminated() && GroupAuth.isMember(user, updatedGroupState)) {
                   responseBuilder.setGroupSendEndorsementsResponse(getSerializedGroupSendEndorsements(updatedGroupState));
                 }
                 final GroupChangeResponse response = responseBuilder.build();
@@ -669,17 +708,21 @@ public class GroupsController {
         return Response.status(Response.Status.NOT_FOUND).build();
       }
 
-      Optional<Member> member = GroupAuth.getMember(user, group.get());
-
-      if (member.isPresent()) {
-        String token = externalGroupCredentialGenerator.generateFor(
-            member.get().getUserId(), user.getGroupId(), GroupAuth.isAllowedToInitiateGroupCall(user, group.get()));
-        ExternalGroupCredential credential = ExternalGroupCredential.newBuilder().setToken(token).build();
-
-        return Response.ok(credential).build();
-      } else {
+      final Optional<Member> member = GroupAuth.getMember(user, group.get());
+      if (member.isEmpty()) {
         return Response.status(Response.Status.FORBIDDEN).build();
       }
+
+      // can't place calls to terminated groups, so don't supply a credential
+      if (group.get().getTerminated()) {
+        return Response.status(423, "Group is terminated").build();
+      }
+
+      final String token = externalGroupCredentialGenerator.generateFor(
+          member.get().getUserId(), user.getGroupId(), GroupAuth.isAllowedToInitiateGroupCall(user, group.get()));
+      final ExternalGroupCredential credential = ExternalGroupCredential.newBuilder().setToken(token).build();
+
+      return Response.ok(credential).build();
     });
   }
 

@@ -29,27 +29,30 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <configuration.path>config</configuration.path>
 
-        <!-- eclipse-temurin:21.0.6_7-jre-jammy -->
-        <docker.image.sha256>02fc89fa8766a9ba221e69225f8d1c10bb91885ddbd3c112448e23488ba40ab6</docker.image.sha256>
+        <docker.image>eclipse-temurin:25-jre-resolute@sha256:17ddcc32b1f296155738c4b2f689208e46bf0cf4eb0b215c717717deb8b74b90</docker.image>
 
-        <dropwizard.version>4.0.16</dropwizard.version>
+        <dropwizard.version>5.0.2</dropwizard.version>
+        <google-cloud-libraries.version>26.85.1</google-cloud-libraries.version>
+        <jackson-bom.version>2.22.1</jackson-bom.version>
+        <kotlin.version>2.4.10</kotlin.version>
+        <libsignal-server.version>0.100.0</libsignal-server.version>
+        <logback.version>1.5.38</logback.version>
+        <logback-access.version>2.0.14</logback-access.version>
+        <micrometer-bom.version>1.17.0</micrometer-bom.version>
+        <!-- There are a few sneaky compatibility issues with protobuf versions:
 
-        <google-cloud-libraries.version>26.73.0</google-cloud-libraries.version>
-        <jackson-bom.version>2.20.1</jackson-bom.version>
-        <kotlin.version>2.2.21</kotlin.version>
-        <libsignal-server.version>0.86.6</libsignal-server.version>
-        <logback.version>1.5.24</logback.version>
-        <logback-access.version>2.0.8</logback-access.version>
-        <micrometer-bom.version>1.16.2</micrometer-bom.version>
-        <protobuf.version>4.29.4</protobuf.version> <!-- must be less than or equal to the value from Google libraries-bom, see https://protobuf.dev/support/cross-version-runtime-guarantee/ -->
+        1. This must be less than or equal to the value from Google libraries-bom; see
+           https://protobuf.dev/support/cross-version-runtime-guarantee/
+        2. This must be greater than or equal to the protobuf version used to generate the entities in OpenTelemetry
+        -->
+        <protobuf.version>4.35.1</protobuf.version>
         <semver4j.version>3.1.0</semver4j.version>
-        <snakeyaml.version>2.5</snakeyaml.version>
+        <snakeyaml.version>2.6</snakeyaml.version>
         <syslog4j.version>0.9.30</syslog4j.version>
 
         <!-- test -->
-        <assertj-core.version>3.27.6</assertj-core.version>
+        <assertj-core.version>3.27.7</assertj-core.version>
     </properties>
 
     <dependencyManagement>
@@ -84,17 +87,29 @@
                 <scope>import</scope>
             </dependency>
 
+            <!-- Reconcile disagreements between Google Cloud libraries and OpenTelemetry -->
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${protobuf.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java-util</artifactId>
+                <version>${protobuf.version}</version>
+            </dependency>
+
             <dependency>
                 <groupId>io.opentelemetry</groupId>
                 <artifactId>opentelemetry-bom</artifactId>
-                <version>1.58.0</version>
+                <version>1.64.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
             <dependency>
                 <groupId>io.opentelemetry.instrumentation</groupId>
                 <artifactId>opentelemetry-instrumentation-bom</artifactId>
-                <version>2.24.0</version>
+                <version>2.30.0</version>
                 <type>pom</type>
                 <scope>import</scope>
             </dependency>
@@ -141,6 +156,10 @@
         <dependency>
             <groupId>com.google.cloud</groupId>
             <artifactId>google-cloud-bigtable</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>com.google.cloud</groupId>
+            <artifactId>google-cloud-secretmanager</artifactId>
         </dependency>
         <dependency>
             <groupId>commons-codec</groupId>
@@ -197,7 +216,7 @@
           <groupId>io.opentelemetry.instrumentation</groupId>
           <artifactId>opentelemetry-logback-appender-1.0</artifactId>
           <!-- *all* opentelemetry-logback-appender versions are "alpha" despite the advanced version number -->
-          <version>2.24.0-alpha</version>
+          <version>2.30.0-alpha</version>
           <exclusions>
             <!-- incubator packages aren't included in the opentelemetry BOM, and we don't use them -->
             <exclusion>
@@ -239,7 +258,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>versions-maven-plugin</artifactId>
-                <version>2.20.1</version>
+                <version>2.21.0</version>
                 <configuration>
                   <ruleSet>
                     <!-- ignore non-stable releases -->
@@ -261,7 +280,7 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>templating-maven-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>3.1.0</version>
                 <executions>
                     <execution>
                         <id>filter-src</id>
@@ -279,7 +298,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.4.0</version>
+                <version>3.5.0</version>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
@@ -289,16 +308,16 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.14.1</version>
+                <version>3.15.0</version>
                 <configuration>
-                    <source>21</source>
-                    <target>21</target>
+                    <source>25</source>
+                    <target>25</target>
                 </configuration>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.9.0</version>
+                <version>3.11.0</version>
                 <executions>
                     <execution>
                         <phase>initialize</phase>
@@ -343,7 +362,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.4</version>
+                <version>3.5.6</version>
                 <configuration>
                     <argLine>-javaagent:${org.mockito:mockito-core:jar}</argLine>
                 </configuration>
@@ -369,7 +388,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>3.6.2</version>
+                <version>3.6.3</version>
                 <executions>
                     <execution>
                         <goals>
@@ -379,131 +398,56 @@
                             <rules>
                                 <dependencyConvergence/>
                                 <requireMavenVersion>
-                                    <version>3.9.9</version>
+                                    <version>3.9.16</version>
                                 </requireMavenVersion>
                             </rules>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
+
+            <plugin>
+                <groupId>com.google.cloud.tools</groupId>
+                <artifactId>jib-maven-plugin</artifactId>
+                <version>3.5.2</version>
+                <executions>
+                    <execution>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <from>
+                        <image>${docker.image}</image>
+                        <platforms>
+                            <platform>
+                                <architecture>amd64</architecture>
+                                <os>linux</os>
+                            </platform>
+                        </platforms>
+                    </from>
+                    <container>
+                        <jvmFlags>
+                            <jvmFlag>-server</jvmFlag>
+                            <jvmFlag>-Djava.awt.headless=true</jvmFlag>
+                            <jvmFlag>-Xmx8192m</jvmFlag>
+                            <jvmFlag>-Xss512k</jvmFlag>
+                            <jvmFlag>-XX:+HeapDumpOnOutOfMemoryError</jvmFlag>
+                        </jvmFlags>
+                        <args>
+                            <arg>server</arg>
+                            <!-- Note: this argument is ignored at runtime if the STORAGE_SERVICE_CONFIG_URI environment
+                            variable is set -->
+                            <arg>/usr/share/signal/config.yml</arg>
+                        </args>
+                        <ports>
+                            <port>8080</port>
+                        </ports>
+                    </container>
+                </configuration>
+            </plugin>
         </plugins>
     </build>
-
-    <profiles>
-        <profile>
-            <id>docker-deploy</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-                <property>
-                    <name>env</name>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>properties-maven-plugin</artifactId>
-                        <version>1.2.1</version>
-                        <executions>
-                            <execution>
-                                <phase>initialize</phase>
-                                <goals>
-                                    <goal>read-project-properties</goal>
-                                </goals>
-                                <configuration>
-                                    <files>
-                                        <file>${configuration.path}/${env}-build.properties</file>
-                                    </files>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                    <plugin>
-                        <groupId>com.google.cloud.tools</groupId>
-                        <artifactId>jib-maven-plugin</artifactId>
-                        <version>3.5.1</version>
-                        <executions>
-                            <execution>
-                                <phase>package</phase>
-                                <goals>
-                                    <goal>build</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <from>
-                                <image>eclipse-temurin@sha256:${docker.image.sha256}</image>
-                                <platforms>
-                                    <platform>
-                                        <architecture>amd64</architecture>
-                                        <os>linux</os>
-                                    </platform>
-                                </platforms>
-                            </from>
-                            <to>
-                                <image>${docker.repo}:${project.version}-${env}</image>
-                            </to>
-                            <container>
-                                <jvmFlags>
-                                    <jvmFlag>-server</jvmFlag>
-                                    <jvmFlag>-Djava.awt.headless=true</jvmFlag>
-                                    <jvmFlag>-Xmx8192m</jvmFlag>
-                                    <jvmFlag>-Xss512k</jvmFlag>
-                                    <jvmFlag>-XX:+HeapDumpOnOutOfMemoryError</jvmFlag>
-                                </jvmFlags>
-                                <args>
-                                    <arg>server</arg>
-                                    <arg>/usr/share/signal/${env}.yml</arg>
-                                </args>
-                                <ports>
-                                    <port>8080</port>
-                                </ports>
-                            </container>
-                            <extraDirectories>
-                                <paths>
-                                    <path>
-                                        <from>${configuration.path}</from>
-                                        <includes>${env}.yml</includes>
-                                        <into>/usr/share/signal/</into>
-                                    </path>
-                                </paths>
-                            </extraDirectories>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-
-        <profile>
-            <id>appengine-deploy</id>
-            <activation>
-                <activeByDefault>false</activeByDefault>
-                <property>
-                    <name>env</name>
-                </property>
-            </activation>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.codehaus.mojo</groupId>
-                        <artifactId>properties-maven-plugin</artifactId>
-                        <version>1.2.1</version>
-                        <executions>
-                            <execution>
-                                <phase>initialize</phase>
-                                <goals>
-                                    <goal>read-project-properties</goal>
-                                </goals>
-                                <configuration>
-                                    <files>
-                                        <file>${configuration.path}/${env}-build.properties</file>
-                                    </files>
-                                </configuration>
-                            </execution>
-                        </executions>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
-    </profiles>
 </project>

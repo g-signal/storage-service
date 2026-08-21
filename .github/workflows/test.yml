@@ -2,18 +2,27 @@ name: Build and test
 
 on: [push]
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
-    container: ubuntu:22.04
+    container: ubuntu:26.04
 
     steps:
-      - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
-      - name: Set up JDK 21
-        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e # v5.1.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Install APT packages
+        # Maven wrapper requires `unzip` to unpack the Maven distribution; see
+        # https://github.com/apache/maven-wrapper/issues/425
+        run: |
+          apt update
+          apt install -y unzip
+      - name: Set up JDK
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           distribution: 'temurin'
-          java-version: 21
+          java-version-file: .java-version
           cache: 'maven'
         env:
           # work around an issue with actions/runner setting an incorrect HOME in containers, which breaks maven caching
