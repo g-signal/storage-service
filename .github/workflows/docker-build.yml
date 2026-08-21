@@ -16,25 +16,22 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0  # 获取完整 git 历史和标签
 
-      - name: Set up JDK 21
-        uses: actions/setup-java@f2beeb24e141e01a676f977032f5a29d81c9e27e
+      - name: Set up JDK
+        uses: actions/setup-java@b6effb05e454b25005698d916606bdc6ffcbf961 # v5.7.0
         with:
           distribution: 'temurin'
-          java-version: 21
+          # Read the version from .java-version instead of pinning it here, so this
+          # workflow follows the project when it moves (currently temurin-25).
+          java-version-file: .java-version
           cache: 'maven'
 
       - name: Log in to Docker Hub
         run: |
           echo "${{ secrets.DOCKERHUB_TOKEN }}" | docker login -u "${{ secrets.DOCKERHUB_USERNAME }}" --password-stdin
-
-      - name: Create config directory and properties
-        run: |
-          mkdir -p config
-          echo "docker.repo=${{ secrets.DOCKERHUB_USERNAME }}/storage-service" > config/staging-build.properties
 
       - name: Show version info for debugging
         run: |
@@ -49,9 +46,11 @@ jobs:
           echo "Using tag: ${GIT_TAG}"
 
       - name: Build and push with Jib
+        # The `docker-deploy` profile and the `${env}` property were removed upstream
+        # ("Don't include configuration in build artifacts; remove unneeded profiles"),
+        # so jib is now configured in the main build section and needs neither. Note the
+        # image entrypoint reads /usr/share/signal/config.yml (no longer ${env}.yml).
         run: |
           ./mvnw -e -B clean package jib:build \
-            -Pdocker-deploy \
-            -Denv=staging \
             -Djib.to.image=${{ secrets.DOCKERHUB_USERNAME }}/storage-service:${{ steps.version.outputs.tag }} \
             -DskipTests
